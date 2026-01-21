@@ -1,0 +1,162 @@
+<div class="users-container">
+  <!-- Header avec actions -->
+  <div class="page-header">
+    <div class="header-content">
+      <h2>Gestion des Utilisateurs</h2>
+      <p class="subtitle">{{ users.length }} utilisateur(s) du système</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>person_add</mat-icon>
+        Nouvel Utilisateur
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="applyFilters()" 
+                 placeholder="Nom, email...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Rôle</mat-label>
+          <mat-select [(ngModel)]="selectedRole" (selectionChange)="applyFilters()">
+            <mat-option value="">Tous</mat-option>
+            <mat-option value="admin">Administrateur</mat-option>
+            <mat-option value="rh_entreprise">RH Entreprise</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Statut</mat-label>
+          <mat-select [(ngModel)]="selectedStatus" (selectionChange)="applyFilters()">
+            <mat-option value="">Tous</mat-option>
+            <mat-option value="true">Actifs</mat-option>
+            <mat-option value="false">Inactifs</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-icon-button (click)="clearFilters()" matTooltip="Effacer les filtres">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Grille des utilisateurs -->
+  <div class="users-grid" *ngIf="!isLoading">
+    <mat-card class="user-card" *ngFor="let user of filteredUsers">
+      <mat-card-header>
+        <div mat-card-avatar class="user-avatar" [ngClass]="'role-' + user.role">
+          <mat-icon>{{ getRoleIcon(user.role) }}</mat-icon>
+        </div>
+        <mat-card-title>{{ user.prenom }} {{ user.nom }}</mat-card-title>
+        <mat-card-subtitle>{{ user.email }}</mat-card-subtitle>
+        
+        <button mat-icon-button [matMenuTriggerFor]="actionsMenu" 
+                [matMenuTriggerData]="{user: user}">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="user-info">
+          <div class="info-row">
+            <mat-icon>badge</mat-icon>
+            <span class="role-badge" [ngClass]="'role-' + user.role">
+              {{ getRoleLabel(user.role) }}
+            </span>
+          </div>
+          
+          <div class="info-row" *ngIf="user.entreprise_id">
+            <mat-icon>business</mat-icon>
+            <span>{{ getEntrepriseName(user.entreprise_id) }}</span>
+          </div>
+          
+          <div class="info-row">
+            <mat-icon>schedule</mat-icon>
+            <span>Créé le {{ formatDate(user.created_at) }}</span>
+          </div>
+
+          <div class="info-row">
+            <mat-icon>update</mat-icon>
+            <span>Modifié le {{ formatDate(user.updated_at) }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <div class="card-footer">
+          <mat-chip [ngClass]="user.is_active ? 'status-active' : 'status-inactive'">
+            {{ user.is_active ? 'Actif' : 'Inactif' }}
+          </mat-chip>
+          
+          <div class="card-actions">
+            <button mat-icon-button (click)="editUser(user)" matTooltip="Modifier">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button (click)="resetPassword(user)" matTooltip="Réinitialiser mot de passe">
+              <mat-icon>lock_reset</mat-icon>
+            </button>
+            <button mat-icon-button (click)="toggleStatus(user)" 
+                    [matTooltip]="user.is_active ? 'Désactiver' : 'Activer'">
+              <mat-icon>{{ user.is_active ? 'block' : 'check_circle' }}</mat-icon>
+            </button>
+          </div>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Menu d'actions -->
+  <mat-menu #actionsMenu="matMenu">
+    <ng-template matMenuContent let-user="user">
+      <button mat-menu-item (click)="viewUser(user)">
+        <mat-icon>visibility</mat-icon>
+        <span>Voir détails</span>
+      </button>
+      <button mat-menu-item (click)="editUser(user)">
+        <mat-icon>edit</mat-icon>
+        <span>Modifier</span>
+      </button>
+      <button mat-menu-item (click)="resetPassword(user)">
+        <mat-icon>lock_reset</mat-icon>
+        <span>Réinitialiser mot de passe</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="toggleStatus(user)" 
+              [ngClass]="user.is_active ? 'deactivate-action' : 'activate-action'">
+        <mat-icon>{{ user.is_active ? 'block' : 'check_circle' }}</mat-icon>
+        <span>{{ user.is_active ? 'Désactiver' : 'Activer' }}</span>
+      </button>
+      <button mat-menu-item (click)="deleteUser(user)" class="delete-action" 
+              *ngIf="user.id !== currentUserId">
+        <mat-icon>delete</mat-icon>
+        <span>Supprimer</span>
+      </button>
+    </ng-template>
+  </mat-menu>
+
+  <!-- Message si aucun résultat -->
+  <div class="no-data" *ngIf="filteredUsers.length === 0 && !isLoading">
+    <mat-icon>people_outline</mat-icon>
+    <h3>Aucun utilisateur trouvé</h3>
+    <p>Essayez de modifier vos critères de recherche ou ajoutez un nouvel utilisateur.</p>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>person_add</mat-icon>
+      Ajouter un utilisateur
+    </button>
+  </div>
+</div>
+
+<!-- Loading spinner -->
+<div class="loading-container" *ngIf="isLoading">
+  <mat-spinner></mat-spinner>
+  <p>Chargement des utilisateurs...</p>
+</div>

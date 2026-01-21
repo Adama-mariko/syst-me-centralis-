@@ -1,0 +1,169 @@
+<div class="collaborateur-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>{{ isEditMode ? 'edit' : 'person_add' }}</mat-icon>
+    {{ isEditMode ? 'Modifier le collaborateur' : 'Nouveau collaborateur' }}
+  </h2>
+
+  <mat-dialog-content>
+    <form [formGroup]="collaborateurForm" class="collaborateur-form">
+      <!-- Informations personnelles -->
+      <div class="form-section">
+        <h3>Informations personnelles</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Prénom *</mat-label>
+            <input matInput formControlName="prenom" placeholder="Prénom">
+            <mat-error *ngIf="collaborateurForm.get('prenom')?.hasError('required')">
+              Le prénom est requis
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Nom *</mat-label>
+            <input matInput formControlName="nom" placeholder="Nom de famille">
+            <mat-error *ngIf="collaborateurForm.get('nom')?.hasError('required')">
+              Le nom est requis
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email *</mat-label>
+          <input matInput type="email" formControlName="email" placeholder="email@exemple.com">
+          <mat-error *ngIf="collaborateurForm.get('email')?.hasError('required')">
+            L'email est requis
+          </mat-error>
+          <mat-error *ngIf="collaborateurForm.get('email')?.hasError('email')">
+            Format d'email invalide
+          </mat-error>
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Téléphone</mat-label>
+            <input matInput formControlName="telephone" placeholder="01 23 45 67 89">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Date de naissance</mat-label>
+            <input matInput type="date" formControlName="date_naissance">
+          </mat-form-field>
+        </div>
+      </div>
+      <!-- Adresse -->
+      <div class="form-section">
+        <h3>Adresse</h3>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Adresse</mat-label>
+          <textarea matInput formControlName="adresse" placeholder="Adresse complète" rows="2"></textarea>
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Ville</mat-label>
+            <input matInput formControlName="ville" placeholder="Ville">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Code postal</mat-label>
+            <input matInput formControlName="code_postal" placeholder="75001">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Informations professionnelles -->
+      <div class="form-section">
+        <h3>Informations professionnelles</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Poste *</mat-label>
+            <input matInput formControlName="poste" placeholder="Intitulé du poste">
+            <mat-error *ngIf="collaborateurForm.get('poste')?.hasError('required')">
+              Le poste est requis
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Date d'embauche *</mat-label>
+            <input matInput type="date" formControlName="date_embauche">
+            <mat-error *ngIf="collaborateurForm.get('date_embauche')?.hasError('required')">
+              La date d'embauche est requise
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Compétences</mat-label>
+          <textarea matInput formControlName="competences" 
+                    placeholder="Décrivez les compétences et qualifications" rows="3"></textarea>
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Salaire (€)</mat-label>
+            <input matInput type="number" formControlName="salaire" placeholder="0">
+            <span matTextPrefix>€&nbsp;</span>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Entreprise actuelle</mat-label>
+            <mat-select formControlName="entreprise_actuelle_id">
+              <mat-option value="">Aucune entreprise</mat-option>
+              <mat-option *ngFor="let entreprise of entreprises" [value]="entreprise.id">
+                {{ entreprise.nom }} - {{ entreprise.ville }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Statut (uniquement en édition) -->
+      <div class="form-section" *ngIf="isEditMode">
+        <h3>Statut</h3>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Statut</mat-label>
+          <mat-select formControlName="statut">
+            <mat-option value="actif">
+              <div class="status-option active">
+                <mat-icon>check_circle</mat-icon>
+                <span>Actif</span>
+              </div>
+            </mat-option>
+            <mat-option value="inactif">
+              <div class="status-option inactive">
+                <mat-icon>block</mat-icon>
+                <span>Inactif</span>
+              </div>
+            </mat-option>
+            <mat-option value="en_conge">
+              <div class="status-option leave">
+                <mat-icon>beach_access</mat-icon>
+                <span>En congé</span>
+              </div>
+            </mat-option>
+            <mat-option value="arret_maladie">
+              <div class="status-option sick">
+                <mat-icon>local_hospital</mat-icon>
+                <span>Arrêt maladie</span>
+              </div>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Annuler</button>
+    <button mat-raised-button color="primary" 
+            [disabled]="collaborateurForm.invalid || isLoading" 
+            (click)="onSave()">
+      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+      <span *ngIf="!isLoading">{{ isEditMode ? 'Modifier' : 'Créer' }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>

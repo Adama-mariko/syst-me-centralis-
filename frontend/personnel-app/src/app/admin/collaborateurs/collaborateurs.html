@@ -1,0 +1,199 @@
+<div class="collaborateurs-container">
+  <!-- Header avec actions -->
+  <div class="page-header">
+    <div class="header-content">
+      <h2>Gestion des Collaborateurs</h2>
+      <p class="subtitle">{{ collaborateurs.length }} collaborateur(s) enregistré(s)</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>person_add</mat-icon>
+        Nouveau Collaborateur
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Nom, email, poste...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Statut</mat-label>
+          <mat-select [(ngModel)]="selectedStatus" (selectionChange)="applyFilters()">
+            <mat-option value="">Tous</mat-option>
+            <mat-option value="actif">Actif</mat-option>
+            <mat-option value="inactif">Inactif</mat-option>
+            <mat-option value="en_conge">En congé</mat-option>
+            <mat-option value="arret_maladie">Arrêt maladie</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Entreprise</mat-label>
+          <mat-select [(ngModel)]="selectedEntreprise" (selectionChange)="applyFilters()">
+            <mat-option value="">Toutes</mat-option>
+            <mat-option *ngFor="let entreprise of entreprises" [value]="entreprise.id">
+              {{ entreprise.nom }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-icon-button (click)="clearFilters()" matTooltip="Effacer les filtres">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tableau des collaborateurs -->
+  <mat-card class="table-card">
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table [dataSource]="filteredCollaborateurs" class="collaborateurs-table" matSort>
+          
+          <!-- Colonne Photo/Avatar -->
+          <ng-container matColumnDef="avatar">
+            <th mat-header-cell *matHeaderCellDef>Photo</th>
+            <td mat-cell *matCellDef="let collaborateur">
+              <div class="avatar">
+                <mat-icon>person</mat-icon>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Numéro employé -->
+          <ng-container matColumnDef="numero_employe">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>N° Employé</th>
+            <td mat-cell *matCellDef="let collaborateur">
+              <span class="employee-number">{{ collaborateur.numero_employe }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Nom complet -->
+          <ng-container matColumnDef="nom_complet">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Nom Complet</th>
+            <td mat-cell *matCellDef="let collaborateur">
+              <div class="name-cell">
+                <div class="name">{{ collaborateur.prenom }} {{ collaborateur.nom }}</div>
+                <div class="email">{{ collaborateur.email }}</div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Poste -->
+          <ng-container matColumnDef="poste">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Poste</th>
+            <td mat-cell *matCellDef="let collaborateur">
+              <span class="poste">{{ collaborateur.poste }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Entreprise -->
+          <ng-container matColumnDef="entreprise">
+            <th mat-header-cell *matHeaderCellDef>Entreprise</th>
+            <td mat-cell *matCellDef="let collaborateur">
+              <span class="entreprise" *ngIf="getEntrepriseName(collaborateur.entreprise_actuelle_id)">
+                {{ getEntrepriseName(collaborateur.entreprise_actuelle_id) }}
+              </span>
+              <span class="no-entreprise" *ngIf="!collaborateur.entreprise_actuelle_id">
+                Non assigné
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Statut -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Statut</th>
+            <td mat-cell *matCellDef="let collaborateur">
+              <mat-chip [ngClass]="'status-' + collaborateur.statut">
+                {{ getStatusLabel(collaborateur.statut) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Validation RH -->
+          <ng-container matColumnDef="validation">
+            <th mat-header-cell *matHeaderCellDef>Validation RH</th>
+            <td mat-cell *matCellDef="let collaborateur">
+              <mat-icon class="validation-icon" 
+                       [ngClass]="collaborateur.is_validated_by_rh ? 'validated' : 'pending'"
+                       [matTooltip]="collaborateur.is_validated_by_rh ? 'Validé' : 'En attente'">
+                {{ collaborateur.is_validated_by_rh ? 'check_circle' : 'pending' }}
+              </mat-icon>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let collaborateur">
+              <div class="actions-cell">
+                <button mat-icon-button [matMenuTriggerFor]="actionsMenu" 
+                        [matMenuTriggerData]="{collaborateur: collaborateur}">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+              (click)="viewCollaborateur(row)" class="clickable-row"></tr>
+        </table>
+
+        <!-- Menu d'actions -->
+        <mat-menu #actionsMenu="matMenu">
+          <ng-template matMenuContent let-collaborateur="collaborateur">
+            <button mat-menu-item (click)="viewCollaborateur(collaborateur)">
+              <mat-icon>visibility</mat-icon>
+              <span>Voir détails</span>
+            </button>
+            <button mat-menu-item (click)="editCollaborateur(collaborateur)">
+              <mat-icon>edit</mat-icon>
+              <span>Modifier</span>
+            </button>
+            <button mat-menu-item (click)="createPlacement(collaborateur)" 
+                    *ngIf="collaborateur.statut === 'actif'">
+              <mat-icon>assignment</mat-icon>
+              <span>Nouveau placement</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item (click)="deleteCollaborateur(collaborateur)" class="delete-action">
+              <mat-icon>delete</mat-icon>
+              <span>Supprimer</span>
+            </button>
+          </ng-template>
+        </mat-menu>
+
+        <!-- Message si aucun résultat -->
+        <div class="no-data" *ngIf="filteredCollaborateurs.length === 0">
+          <mat-icon>person_off</mat-icon>
+          <h3>Aucun collaborateur trouvé</h3>
+          <p>Essayez de modifier vos critères de recherche ou ajoutez un nouveau collaborateur.</p>
+          <button mat-raised-button color="primary" (click)="openCreateDialog()">
+            <mat-icon>person_add</mat-icon>
+            Ajouter un collaborateur
+          </button>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" 
+                     [pageSize]="25"
+                     showFirstLastButtons>
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Loading spinner -->
+<div class="loading-container" *ngIf="isLoading">
+  <mat-spinner></mat-spinner>
+  <p>Chargement des collaborateurs...</p>
+</div>

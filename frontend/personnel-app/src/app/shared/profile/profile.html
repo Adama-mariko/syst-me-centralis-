@@ -1,0 +1,155 @@
+<div class="profile-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>person</mat-icon>
+    Mon Profil
+  </h2>
+
+  <mat-dialog-content>
+    <div class="profile-content" *ngIf="currentUser">
+      <!-- Avatar et informations principales -->
+      <div class="profile-header">
+        <div class="avatar-section">
+          <div class="user-avatar" [ngClass]="'role-' + currentUser.role">
+            <img *ngIf="currentUser.avatar_url" [src]="currentUser.avatar_url" alt="Avatar" class="avatar-image">
+            <mat-icon *ngIf="!currentUser.avatar_url">{{ getRoleIcon(currentUser.role) }}</mat-icon>
+          </div>
+          <button mat-stroked-button class="change-avatar-btn" (click)="changeAvatar()">
+            <mat-icon>photo_camera</mat-icon>
+            Changer la photo
+          </button>
+          <input #fileInput type="file" accept="image/*" style="display: none;" (change)="onFileSelected($event)">
+        </div>
+        
+        <div class="user-info">
+          <h3>{{ currentUser.prenom }} {{ currentUser.nom }}</h3>
+          <p class="user-email">{{ currentUser.email }}</p>
+          <mat-chip class="role-chip" [ngClass]="'role-' + currentUser.role">
+            {{ getRoleLabel(currentUser.role) }}
+          </mat-chip>
+        </div>
+      </div>
+
+      <!-- Formulaire de modification -->
+      <form [formGroup]="profileForm" class="profile-form">
+        <div class="form-section">
+          <h4>Informations personnelles</h4>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Prénom</mat-label>
+              <input matInput formControlName="prenom" [readonly]="!isEditing">
+              <mat-error *ngIf="profileForm.get('prenom')?.hasError('required')">
+                Le prénom est requis
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Nom</mat-label>
+              <input matInput formControlName="nom" [readonly]="!isEditing">
+              <mat-error *ngIf="profileForm.get('nom')?.hasError('required')">
+                Le nom est requis
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" [readonly]="!isEditing">
+            <mat-error *ngIf="profileForm.get('email')?.hasError('required')">
+              L'email est requis
+            </mat-error>
+            <mat-error *ngIf="profileForm.get('email')?.hasError('email')">
+              Format d'email invalide
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Informations du compte -->
+        <div class="form-section">
+          <h4>Informations du compte</h4>
+          
+          <div class="info-grid">
+            <div class="info-item">
+              <mat-icon>badge</mat-icon>
+              <div>
+                <span class="label">Rôle</span>
+                <span class="value">{{ getRoleLabel(currentUser.role) }}</span>
+              </div>
+            </div>
+
+            <div class="info-item" *ngIf="currentUser.entreprise_id">
+              <mat-icon>business</mat-icon>
+              <div>
+                <span class="label">Entreprise</span>
+                <span class="value">{{ getEntrepriseName(currentUser.entreprise_id) }}</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <mat-icon>schedule</mat-icon>
+              <div>
+                <span class="label">Membre depuis</span>
+                <span class="value">{{ formatDate(currentUser.created_at) }}</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <mat-icon>update</mat-icon>
+              <div>
+                <span class="label">Dernière modification</span>
+                <span class="value">{{ formatDate(currentUser.updated_at) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Changement de mot de passe -->
+        <div class="form-section" *ngIf="isEditing">
+          <h4>Sécurité</h4>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nouveau mot de passe (optionnel)</mat-label>
+            <input matInput [type]="hidePassword ? 'password' : 'text'" 
+                   formControlName="newPassword" placeholder="Laisser vide pour ne pas changer">
+            <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+              <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="profileForm.get('newPassword')?.hasError('minlength')">
+              Le mot de passe doit contenir au moins 6 caractères
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width" *ngIf="profileForm.get('newPassword')?.value">
+            <mat-label>Confirmer le nouveau mot de passe</mat-label>
+            <input matInput [type]="hideConfirmPassword ? 'password' : 'text'" 
+                   formControlName="confirmPassword" placeholder="Confirmer le mot de passe">
+            <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" type="button">
+              <mat-icon>{{hideConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="profileForm.hasError('passwordMismatch')">
+              Les mots de passe ne correspondent pas
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </form>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">
+      {{ isEditing ? 'Annuler' : 'Fermer' }}
+    </button>
+    
+    <button mat-button color="primary" (click)="toggleEdit()" *ngIf="!isEditing">
+      <mat-icon>edit</mat-icon>
+      Modifier
+    </button>
+    
+    <button mat-raised-button color="primary" 
+            [disabled]="profileForm.invalid || isLoading" 
+            (click)="onSave()" *ngIf="isEditing">
+      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+      <span *ngIf="!isLoading">Sauvegarder</span>
+    </button>
+  </mat-dialog-actions>
+</div>

@@ -1,0 +1,154 @@
+<div class="layout-container">
+  <!-- Sidebar -->
+  <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav #drawer class="sidenav" fixedInViewport="true" 
+                 [attr.role]="'navigation'" [mode]="'side'" [opened]="true">
+      
+      <!-- Logo et titre -->
+      <div class="sidenav-header">
+        <div class="logo">
+          <mat-icon class="logo-icon">business</mat-icon>
+          <span class="logo-text">Personnel Manager</span>
+        </div>
+        <div class="user-info">
+          <div class="user-avatar">
+            <img *ngIf="currentUser?.avatar_url" [src]="currentUser?.avatar_url" alt="Avatar" class="avatar-image">
+            <mat-icon *ngIf="!currentUser?.avatar_url">account_circle</mat-icon>
+          </div>
+          <div class="user-details" *ngIf="currentUser">
+            <div class="user-name">{{ currentUser.prenom }} {{ currentUser.nom }}</div>
+            <div class="user-role">{{ getRoleLabel(currentUser.role) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <mat-nav-list class="nav-list">
+        <!-- Menu Admin -->
+        <div *ngIf="isAdmin()">
+          <h3 mat-subheader>Administration</h3>
+          <a mat-list-item routerLink="/admin/dashboard" routerLinkActive="active">
+            <mat-icon matListItemIcon>dashboard</mat-icon>
+            <span matListItemTitle>Tableau de bord</span>
+          </a>
+          <a mat-list-item routerLink="/admin/users" routerLinkActive="active">
+            <mat-icon matListItemIcon>people</mat-icon>
+            <span matListItemTitle>Utilisateurs</span>
+          </a>
+          <a mat-list-item routerLink="/admin/entreprises" routerLinkActive="active">
+            <mat-icon matListItemIcon>business</mat-icon>
+            <span matListItemTitle>Entreprises</span>
+          </a>
+          <a mat-list-item routerLink="/admin/collaborateurs" routerLinkActive="active">
+            <mat-icon matListItemIcon>group</mat-icon>
+            <span matListItemTitle>Collaborateurs</span>
+          </a>
+          <a mat-list-item routerLink="/admin/placements" routerLinkActive="active">
+            <mat-icon matListItemIcon>assignment</mat-icon>
+            <span matListItemTitle>Placements</span>
+          </a>
+          <a mat-list-item routerLink="/admin/remplacements" routerLinkActive="active">
+            <mat-icon matListItemIcon>swap_horiz</mat-icon>
+            <span matListItemTitle>Remplacements</span>
+          </a>
+          <a mat-list-item routerLink="/admin/mouvements" routerLinkActive="active">
+            <mat-icon matListItemIcon>history</mat-icon>
+            <span matListItemTitle>Traçabilité</span>
+          </a>
+        </div>
+
+        <!-- Menu RH -->
+        <div *ngIf="isRH()">
+          <h3 mat-subheader>Ressources Humaines</h3>
+          <a mat-list-item routerLink="/rh/dashboard" routerLinkActive="active">
+            <mat-icon matListItemIcon>dashboard</mat-icon>
+            <span matListItemTitle>Tableau de bord</span>
+          </a>
+          <a mat-list-item routerLink="/rh/collaborateurs" routerLinkActive="active">
+            <mat-icon matListItemIcon>group</mat-icon>
+            <span matListItemTitle>Mes Collaborateurs</span>
+          </a>
+          <a mat-list-item routerLink="/rh/placements" routerLinkActive="active">
+            <mat-icon matListItemIcon>assignment</mat-icon>
+            <span matListItemTitle>Placements</span>
+          </a>
+          <a mat-list-item routerLink="/rh/validations" routerLinkActive="active">
+            <mat-icon matListItemIcon>check_circle</mat-icon>
+            <span matListItemTitle>Validations</span>
+          </a>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Actions communes -->
+        <a mat-list-item (click)="logout()">
+          <mat-icon matListItemIcon>logout</mat-icon>
+          <span matListItemTitle>Déconnexion</span>
+        </a>
+      </mat-nav-list>
+    </mat-sidenav>
+
+    <!-- Contenu principal -->
+    <mat-sidenav-content class="main-content">
+      <!-- Toolbar -->
+      <mat-toolbar class="toolbar">
+        <button type="button" mat-icon-button (click)="drawer.toggle()">
+          <mat-icon>menu</mat-icon>
+        </button>
+        
+        <span class="page-title">{{ pageTitle }}</span>
+        
+        <span class="spacer"></span>
+        
+        <!-- Actions toolbar -->
+        <div class="toolbar-actions">
+          <button mat-icon-button [matMenuTriggerFor]="notificationMenu">
+            <mat-icon matBadge="3" matBadgeColor="warn">notifications</mat-icon>
+          </button>
+          
+          <button mat-icon-button [matMenuTriggerFor]="userMenu">
+            <mat-icon>account_circle</mat-icon>
+          </button>
+        </div>
+
+        <!-- Menu notifications -->
+        <mat-menu #notificationMenu="matMenu">
+          <button mat-menu-item>
+            <mat-icon>info</mat-icon>
+            <span>Nouveau placement en attente</span>
+          </button>
+          <button mat-menu-item>
+            <mat-icon>warning</mat-icon>
+            <span>Validation requise</span>
+          </button>
+          <button mat-menu-item>
+            <mat-icon>check</mat-icon>
+            <span>Placement confirmé</span>
+          </button>
+        </mat-menu>
+
+        <!-- Menu utilisateur -->
+        <mat-menu #userMenu="matMenu">
+          <button mat-menu-item (click)="openProfile()">
+            <mat-icon>person</mat-icon>
+            <span>Profil</span>
+          </button>
+          <button mat-menu-item (click)="openSettings()">
+            <mat-icon>settings</mat-icon>
+            <span>Paramètres</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Déconnexion</span>
+          </button>
+        </mat-menu>
+      </mat-toolbar>
+
+      <!-- Contenu de la page -->
+      <div class="page-content">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

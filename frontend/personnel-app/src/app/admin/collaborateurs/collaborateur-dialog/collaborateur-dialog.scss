@@ -1,0 +1,137 @@
+.collaborateur-dialog {
+  min-width: 600px;
+  max-width: 700px;
+
+  h2[mat-dialog-title] {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 24px 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1e293b;
+
+    mat-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+      color: #3b82f6;
+    }
+  }
+}
+
+mat-dialog-content {
+  padding: 0 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.collaborateur-form {
+  .form-section {
+    margin-bottom: 32px;
+
+    h3 {
+      margin: 0 0 16px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #374151;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+
+      @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .full-width {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+  }
+
+  mat-form-field {
+    margin-bottom: 16px;
+
+    .mat-mdc-form-field-wrapper {
+      border-radius: 8px;
+    }
+  }
+
+  // Styles pour les options de statut
+  .status-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+
+    &.active mat-icon { color: #059669; }
+    &.inactive mat-icon { color: #6b7280; }
+    &.leave mat-icon { color: #d97706; }
+    &.sick mat-icon { color: #dc2626; }
+
+    span {
+      font-weight: 500;
+    }
+  }
+}
+
+mat-dialog-actions {
+  padding: 24px;
+  gap: 12px;
+
+  button {
+    min-width: 100px;
+    height: 40px;
+    border-radius: 8px;
+    font-weight: 500;
+
+    &[mat-raised-button] {
+      mat-spinner {
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 700px) {
+  .collaborateur-dialog {
+    min-width: 90vw;
+    max-width: 90vw;
+  }
+
+  mat-dialog-content {
+    padding: 0 16px;
+  }
+
+  mat-dialog-actions {
+    padding: 16px;
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
+  }
+}
+
+// Animations
+.collaborateur-form {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

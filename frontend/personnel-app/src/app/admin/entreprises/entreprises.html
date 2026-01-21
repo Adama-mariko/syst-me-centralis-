@@ -1,0 +1,178 @@
+<div class="entreprises-container">
+  <!-- Header avec actions -->
+  <div class="page-header">
+    <div class="header-content">
+      <h2>Gestion des Entreprises</h2>
+      <p class="subtitle">{{ entreprises.length }} entreprise(s) partenaire(s)</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>business</mat-icon>
+        Nouvelle Entreprise
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="applyFilters()" 
+                 placeholder="Nom, SIRET, ville...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Ville</mat-label>
+          <mat-select [(ngModel)]="selectedVille" (selectionChange)="applyFilters()">
+            <mat-option value="">Toutes</mat-option>
+            <mat-option *ngFor="let ville of villes" [value]="ville">
+              {{ ville }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Statut</mat-label>
+          <mat-select [(ngModel)]="selectedStatus" (selectionChange)="applyFilters()">
+            <mat-option value="">Tous</mat-option>
+            <mat-option value="true">Actives</mat-option>
+            <mat-option value="false">Inactives</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-icon-button (click)="clearFilters()" matTooltip="Effacer les filtres">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Grille des entreprises -->
+  <div class="entreprises-grid" *ngIf="!isLoading">
+    <mat-card class="entreprise-card" *ngFor="let entreprise of filteredEntreprises" 
+              (click)="viewEntreprise(entreprise)">
+      <mat-card-header>
+        <div mat-card-avatar class="entreprise-avatar">
+          <mat-icon>business</mat-icon>
+        </div>
+        <mat-card-title>{{ entreprise.nom }}</mat-card-title>
+        <mat-card-subtitle>SIRET: {{ entreprise.siret }}</mat-card-subtitle>
+        
+        <button mat-icon-button [matMenuTriggerFor]="actionsMenu" 
+                [matMenuTriggerData]="{entreprise: entreprise}"
+                (click)="$event.stopPropagation()">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="entreprise-info">
+          <div class="info-row">
+            <mat-icon>location_on</mat-icon>
+            <span>{{ entreprise.adresse }}, {{ entreprise.ville }} {{ entreprise.code_postal }}</span>
+          </div>
+          
+          <div class="info-row" *ngIf="entreprise.telephone">
+            <mat-icon>phone</mat-icon>
+            <span>{{ entreprise.telephone }}</span>
+          </div>
+          
+          <div class="info-row" *ngIf="entreprise.email">
+            <mat-icon>email</mat-icon>
+            <span>{{ entreprise.email }}</span>
+          </div>
+
+          <div class="info-row" *ngIf="entreprise.contact_rh_nom">
+            <mat-icon>person</mat-icon>
+            <span>{{ entreprise.contact_rh_nom }}</span>
+            <span class="contact-email" *ngIf="entreprise.contact_rh_email">
+              ({{ entreprise.contact_rh_email }})
+            </span>
+          </div>
+        </div>
+
+        <div class="entreprise-stats">
+          <div class="stat-item">
+            <span class="stat-number">{{ getCollaborateursCount(entreprise.id) }}</span>
+            <span class="stat-label">Collaborateurs</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ getPlacementsCount(entreprise.id) }}</span>
+            <span class="stat-label">Placements</span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <div class="card-footer">
+          <mat-chip [ngClass]="entreprise.is_active ? 'status-active' : 'status-inactive'">
+            {{ entreprise.is_active ? 'Active' : 'Inactive' }}
+          </mat-chip>
+          
+          <div class="card-actions">
+            <button mat-icon-button (click)="editEntreprise(entreprise); $event.stopPropagation()" 
+                    matTooltip="Modifier">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button (click)="viewCollaborateurs(entreprise); $event.stopPropagation()" 
+                    matTooltip="Voir collaborateurs">
+              <mat-icon>group</mat-icon>
+            </button>
+          </div>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Menu d'actions -->
+  <mat-menu #actionsMenu="matMenu">
+    <ng-template matMenuContent let-entreprise="entreprise">
+      <button mat-menu-item (click)="viewEntreprise(entreprise)">
+        <mat-icon>visibility</mat-icon>
+        <span>Voir détails</span>
+      </button>
+      <button mat-menu-item (click)="editEntreprise(entreprise)">
+        <mat-icon>edit</mat-icon>
+        <span>Modifier</span>
+      </button>
+      <button mat-menu-item (click)="viewCollaborateurs(entreprise)">
+        <mat-icon>group</mat-icon>
+        <span>Collaborateurs</span>
+      </button>
+      <button mat-menu-item (click)="createUser(entreprise)">
+        <mat-icon>person_add</mat-icon>
+        <span>Créer utilisateur RH</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="toggleStatus(entreprise)" 
+              [ngClass]="entreprise.is_active ? 'deactivate-action' : 'activate-action'">
+        <mat-icon>{{ entreprise.is_active ? 'block' : 'check_circle' }}</mat-icon>
+        <span>{{ entreprise.is_active ? 'Désactiver' : 'Activer' }}</span>
+      </button>
+      <button mat-menu-item (click)="deleteEntreprise(entreprise)" class="delete-action">
+        <mat-icon>delete</mat-icon>
+        <span>Supprimer</span>
+      </button>
+    </ng-template>
+  </mat-menu>
+
+  <!-- Message si aucun résultat -->
+  <div class="no-data" *ngIf="filteredEntreprises.length === 0 && !isLoading">
+    <mat-icon>business_center</mat-icon>
+    <h3>Aucune entreprise trouvée</h3>
+    <p>Essayez de modifier vos critères de recherche ou ajoutez une nouvelle entreprise.</p>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>business</mat-icon>
+      Ajouter une entreprise
+    </button>
+  </div>
+</div>
+
+<!-- Loading spinner -->
+<div class="loading-container" *ngIf="isLoading">
+  <mat-spinner></mat-spinner>
+  <p>Chargement des entreprises...</p>
+</div>

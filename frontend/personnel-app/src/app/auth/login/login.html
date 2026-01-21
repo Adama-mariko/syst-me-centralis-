@@ -1,0 +1,59 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo">
+        <mat-icon class="logo-icon">business</mat-icon>
+        <h1>Personnel Manager</h1>
+      </div>
+      <p class="subtitle">Système de gestion de personnel</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email" placeholder="votre@email.com">
+        <mat-icon matSuffix>email</mat-icon>
+        <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
+          L'email est requis
+        </mat-error>
+        <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
+          Format d'email invalide
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Mot de passe</mat-label>
+        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password">
+        <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+          <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+        </button>
+        <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+          Le mot de passe est requis
+        </mat-error>
+      </mat-form-field>
+
+      <div class="login-actions">
+        <button mat-raised-button color="primary" type="submit" 
+                [disabled]="loginForm.invalid || isLoading" class="login-button">
+          <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+          <span *ngIf="!isLoading">Se connecter</span>
+        </button>
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        <mat-icon>error</mat-icon>
+        <span>{{ errorMessage }}</span>
+      </div>
+    </form>
+
+    <div class="demo-credentials">
+      <mat-divider></mat-divider>
+      <p class="demo-title">Comptes de démonstration :</p>
+      <div class="demo-accounts">
+        <div class="demo-account">
+          <strong>Admin :</strong> admin@personnel.com / admin123
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

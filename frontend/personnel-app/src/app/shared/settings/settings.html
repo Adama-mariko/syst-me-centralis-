@@ -1,0 +1,194 @@
+<div class="settings-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>settings</mat-icon>
+    Paramètres
+  </h2>
+
+  <mat-dialog-content>
+    <div class="settings-content">
+      
+      <!-- Préférences d'affichage -->
+      <div class="settings-section">
+        <h3>
+          <mat-icon>palette</mat-icon>
+          Affichage
+        </h3>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Thème sombre</span>
+            <span class="setting-description">Activer le mode sombre pour réduire la fatigue oculaire</span>
+          </div>
+          <mat-slide-toggle [(ngModel)]="settings.darkMode" (change)="onSettingChange('darkMode', $event.checked)">
+          </mat-slide-toggle>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Animations</span>
+            <span class="setting-description">Activer les animations et transitions</span>
+          </div>
+          <mat-slide-toggle [(ngModel)]="settings.animations" (change)="onSettingChange('animations', $event.checked)">
+          </mat-slide-toggle>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Sidebar compacte</span>
+            <span class="setting-description">Réduire la largeur de la barre latérale</span>
+          </div>
+          <mat-slide-toggle [(ngModel)]="settings.compactSidebar" (change)="onSettingChange('compactSidebar', $event.checked)">
+          </mat-slide-toggle>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="settings-section">
+        <h3>
+          <mat-icon>notifications</mat-icon>
+          Notifications
+        </h3>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Notifications push</span>
+            <span class="setting-description">Recevoir des notifications en temps réel</span>
+          </div>
+          <mat-slide-toggle [(ngModel)]="settings.pushNotifications" (change)="onSettingChange('pushNotifications', $event.checked)">
+          </mat-slide-toggle>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Notifications email</span>
+            <span class="setting-description">Recevoir des résumés par email</span>
+          </div>
+          <mat-slide-toggle [(ngModel)]="settings.emailNotifications" (change)="onSettingChange('emailNotifications', $event.checked)">
+          </mat-slide-toggle>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Sons de notification</span>
+            <span class="setting-description">Jouer un son lors des notifications</span>
+          </div>
+          <mat-slide-toggle [(ngModel)]="settings.notificationSounds" (change)="onSettingChange('notificationSounds', $event.checked)">
+          </mat-slide-toggle>
+        </div>
+      </div>
+
+      <!-- Tableau de bord -->
+      <div class="settings-section">
+        <h3>
+          <mat-icon>dashboard</mat-icon>
+          Tableau de bord
+        </h3>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Actualisation automatique</span>
+            <span class="setting-description">Actualiser les données automatiquement</span>
+          </div>
+          <mat-slide-toggle [(ngModel)]="settings.autoRefresh" (change)="onSettingChange('autoRefresh', $event.checked)">
+          </mat-slide-toggle>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Éléments par page</span>
+            <span class="setting-description">Nombre d'éléments affichés dans les listes</span>
+          </div>
+          <mat-form-field appearance="outline" class="items-per-page">
+            <mat-select [(ngModel)]="settings.itemsPerPage" (selectionChange)="onSettingChange('itemsPerPage', $event.value)">
+              <mat-option value="10">10</mat-option>
+              <mat-option value="25">25</mat-option>
+              <mat-option value="50">50</mat-option>
+              <mat-option value="100">100</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Langue</span>
+            <span class="setting-description">Langue de l'interface</span>
+          </div>
+          <mat-form-field appearance="outline" class="language-select">
+            <mat-select [(ngModel)]="settings.language" (selectionChange)="onSettingChange('language', $event.value)">
+              <mat-option value="fr">Français</mat-option>
+              <mat-option value="en">English</mat-option>
+              <mat-option value="es">Español</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Sécurité -->
+      <div class="settings-section">
+        <h3>
+          <mat-icon>security</mat-icon>
+          Sécurité
+        </h3>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Déconnexion automatique</span>
+            <span class="setting-description">Se déconnecter après une période d'inactivité</span>
+          </div>
+          <mat-slide-toggle [(ngModel)]="settings.autoLogout" (change)="onSettingChange('autoLogout', $event.checked)">
+          </mat-slide-toggle>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Durée de session</span>
+            <span class="setting-description">Durée avant déconnexion automatique (minutes)</span>
+          </div>
+          <mat-form-field appearance="outline" class="session-duration">
+            <mat-select [(ngModel)]="settings.sessionDuration" (selectionChange)="onSettingChange('sessionDuration', $event.value)">
+              <mat-option value="15">15 minutes</mat-option>
+              <mat-option value="30">30 minutes</mat-option>
+              <mat-option value="60">1 heure</mat-option>
+              <mat-option value="120">2 heures</mat-option>
+              <mat-option value="480">8 heures</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="settings-section">
+        <h3>
+          <mat-icon>build</mat-icon>
+          Actions
+        </h3>
+        
+        <div class="action-buttons">
+          <button mat-stroked-button (click)="exportSettings()">
+            <mat-icon>download</mat-icon>
+            Exporter les paramètres
+          </button>
+          
+          <button mat-stroked-button (click)="importSettings()">
+            <mat-icon>upload</mat-icon>
+            Importer les paramètres
+          </button>
+          
+          <button mat-stroked-button color="warn" (click)="resetSettings()">
+            <mat-icon>restore</mat-icon>
+            Réinitialiser
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Fermer</button>
+    <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isLoading">
+      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+      <span *ngIf="!isLoading">Sauvegarder</span>
+    </button>
+  </mat-dialog-actions>
+</div>

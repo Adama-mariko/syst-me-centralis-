@@ -1,0 +1,131 @@
+<div class="entreprise-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>{{ isEditMode ? 'edit' : 'business' }}</mat-icon>
+    {{ isEditMode ? 'Modifier l\'entreprise' : 'Nouvelle entreprise' }}
+  </h2>
+
+  <mat-dialog-content>
+    <form [formGroup]="entrepriseForm" class="entreprise-form">
+      <!-- Informations générales -->
+      <div class="form-section">
+        <h3>Informations générales</h3>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nom de l'entreprise *</mat-label>
+          <input matInput formControlName="nom" placeholder="Nom de l'entreprise">
+          <mat-error *ngIf="entrepriseForm.get('nom')?.hasError('required')">
+            Le nom est requis
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>SIRET *</mat-label>
+          <input matInput formControlName="siret" placeholder="12345678901234" maxlength="14">
+          <mat-error *ngIf="entrepriseForm.get('siret')?.hasError('required')">
+            Le SIRET est requis
+          </mat-error>
+          <mat-error *ngIf="entrepriseForm.get('siret')?.hasError('pattern')">
+            Le SIRET doit contenir 14 chiffres
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Adresse -->
+      <div class="form-section">
+        <h3>Adresse</h3>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Adresse *</mat-label>
+          <textarea matInput formControlName="adresse" placeholder="Adresse complète" rows="2"></textarea>
+          <mat-error *ngIf="entrepriseForm.get('adresse')?.hasError('required')">
+            L'adresse est requise
+          </mat-error>
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Ville *</mat-label>
+            <input matInput formControlName="ville" placeholder="Ville">
+            <mat-error *ngIf="entrepriseForm.get('ville')?.hasError('required')">
+              La ville est requise
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Code postal *</mat-label>
+            <input matInput formControlName="code_postal" placeholder="75001">
+            <mat-error *ngIf="entrepriseForm.get('code_postal')?.hasError('required')">
+              Le code postal est requis
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+      <!-- Contact -->
+      <div class="form-section">
+        <h3>Informations de contact</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Téléphone</mat-label>
+            <input matInput formControlName="telephone" placeholder="01 23 45 67 89">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="contact@entreprise.com">
+            <mat-error *ngIf="entrepriseForm.get('email')?.hasError('email')">
+              Format d'email invalide
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Contact RH -->
+      <div class="form-section">
+        <h3>Contact RH</h3>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nom du contact RH</mat-label>
+          <input matInput formControlName="contact_rh_nom" placeholder="Prénom Nom">
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Email RH</mat-label>
+            <input matInput type="email" formControlName="contact_rh_email" placeholder="rh@entreprise.com">
+            <mat-error *ngIf="entrepriseForm.get('contact_rh_email')?.hasError('email')">
+              Format d'email invalide
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Téléphone RH</mat-label>
+            <input matInput formControlName="contact_rh_telephone" placeholder="01 23 45 67 89">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Statut (uniquement en édition) -->
+      <div class="form-section" *ngIf="isEditMode">
+        <h3>Statut</h3>
+        
+        <mat-slide-toggle formControlName="is_active" class="status-toggle">
+          <span class="toggle-label">
+            <mat-icon>{{ entrepriseForm.get('is_active')?.value ? 'check_circle' : 'block' }}</mat-icon>
+            {{ entrepriseForm.get('is_active')?.value ? 'Entreprise active' : 'Entreprise inactive' }}
+          </span>
+        </mat-slide-toggle>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Annuler</button>
+    <button mat-raised-button color="primary" 
+            [disabled]="entrepriseForm.invalid || isLoading" 
+            (click)="onSave()">
+      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+      <span *ngIf="!isLoading">{{ isEditMode ? 'Modifier' : 'Créer' }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>

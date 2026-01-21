@@ -1,0 +1,147 @@
+<div class="user-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>{{ isEditMode ? 'edit' : 'person_add' }}</mat-icon>
+    {{ isEditMode ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur' }}
+  </h2>
+
+  <mat-dialog-content>
+    <form [formGroup]="userForm" class="user-form">
+      <!-- Informations personnelles -->
+      <div class="form-section">
+        <h3>Informations personnelles</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Prénom *</mat-label>
+            <input matInput formControlName="prenom" placeholder="Prénom">
+            <mat-error *ngIf="userForm.get('prenom')?.hasError('required')">
+              Le prénom est requis
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Nom *</mat-label>
+            <input matInput formControlName="nom" placeholder="Nom de famille">
+            <mat-error *ngIf="userForm.get('nom')?.hasError('required')">
+              Le nom est requis
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email *</mat-label>
+          <input matInput type="email" formControlName="email" placeholder="email@exemple.com">
+          <mat-error *ngIf="userForm.get('email')?.hasError('required')">
+            L'email est requis
+          </mat-error>
+          <mat-error *ngIf="userForm.get('email')?.hasError('email')">
+            Format d'email invalide
+          </mat-error>
+        </mat-form-field>
+      </div>
+      <!-- Rôle et permissions -->
+      <div class="form-section">
+        <h3>Rôle et permissions</h3>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Rôle *</mat-label>
+          <mat-select formControlName="role" (selectionChange)="onRoleChange()">
+            <mat-option value="admin">
+              <div class="role-option">
+                <mat-icon>admin_panel_settings</mat-icon>
+                <div>
+                  <div class="role-name">Administrateur</div>
+                  <div class="role-description">Accès complet au système</div>
+                </div>
+              </div>
+            </mat-option>
+            <mat-option value="rh_entreprise">
+              <div class="role-option">
+                <mat-icon>business_center</mat-icon>
+                <div>
+                  <div class="role-name">RH Entreprise</div>
+                  <div class="role-description">Gestion des collaborateurs de son entreprise</div>
+                </div>
+              </div>
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="userForm.get('role')?.hasError('required')">
+            Le rôle est requis
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width" *ngIf="showEntrepriseField">
+          <mat-label>Entreprise *</mat-label>
+          <mat-select formControlName="entreprise_id">
+            <mat-option value="">Sélectionner une entreprise</mat-option>
+            <mat-option *ngFor="let entreprise of entreprises" [value]="entreprise.id">
+              {{ entreprise.nom }} - {{ entreprise.ville }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="userForm.get('entreprise_id')?.hasError('required')">
+            L'entreprise est requise pour un utilisateur RH
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Mot de passe (uniquement en création) -->
+      <div class="form-section" *ngIf="!isEditMode">
+        <h3>Sécurité</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Mot de passe *</mat-label>
+            <input matInput [type]="hidePassword ? 'password' : 'text'" 
+                   formControlName="password" placeholder="Mot de passe">
+            <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+              <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="userForm.get('password')?.hasError('required')">
+              Le mot de passe est requis
+            </mat-error>
+            <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">
+              Le mot de passe doit contenir au moins 6 caractères
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Confirmer le mot de passe *</mat-label>
+            <input matInput [type]="hideConfirmPassword ? 'password' : 'text'" 
+                   formControlName="confirmPassword" placeholder="Confirmer">
+            <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" type="button">
+              <mat-icon>{{hideConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="userForm.get('confirmPassword')?.hasError('required')">
+              La confirmation est requise
+            </mat-error>
+            <mat-error *ngIf="userForm.hasError('passwordMismatch')">
+              Les mots de passe ne correspondent pas
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Statut (uniquement en édition) -->
+      <div class="form-section" *ngIf="isEditMode">
+        <h3>Statut</h3>
+        
+        <mat-slide-toggle formControlName="is_active" class="status-toggle">
+          <span class="toggle-label">
+            <mat-icon>{{ userForm.get('is_active')?.value ? 'check_circle' : 'block' }}</mat-icon>
+            {{ userForm.get('is_active')?.value ? 'Utilisateur actif' : 'Utilisateur inactif' }}
+          </span>
+        </mat-slide-toggle>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Annuler</button>
+    <button mat-raised-button color="primary" 
+            [disabled]="userForm.invalid || isLoading" 
+            (click)="onSave()">
+      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+      <span *ngIf="!isLoading">{{ isEditMode ? 'Modifier' : 'Créer' }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>
