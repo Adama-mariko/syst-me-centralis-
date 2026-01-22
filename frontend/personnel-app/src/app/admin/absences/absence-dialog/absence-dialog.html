@@ -1,0 +1,236 @@
+<div class="absence-dialog">
+  <!-- En-tête du dialog -->
+  <div class="dialog-header">
+    <h2 mat-dialog-title class="dialog-title">
+      <mat-icon>
+        {{ mode === 'create' ? 'add' : 
+           mode === 'edit' ? 'edit' : 
+           mode === 'approve' ? 'check_circle' : 
+           mode === 'reject' ? 'cancel' : 'visibility' }}
+      </mat-icon>
+      {{ getTitle() }}
+    </h2>
+    <button mat-icon-button mat-dialog-close class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Contenu du dialog -->
+  <mat-dialog-content class="dialog-content">
+    <!-- Informations de l'absence existante (mode view/approve/reject) -->
+    <div *ngIf="data.absence && (isViewMode() || isApprovalMode())" class="absence-info">
+      <div class="info-card">
+        <div class="info-header">
+          <mat-icon>person</mat-icon>
+          <h3>Informations du Collaborateur</h3>
+        </div>
+        <div class="info-content">
+          <div class="info-item">
+            <span class="label">Nom :</span>
+            <span class="value">{{ data.absence.collaborateur?.nom }} {{ data.absence.collaborateur?.prenom }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Email :</span>
+            <span class="value">{{ data.absence.collaborateur?.email }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-header">
+          <mat-icon>event_busy</mat-icon>
+          <h3>Détails de l'Absence</h3>
+        </div>
+        <div class="info-content">
+          <div class="info-item">
+            <span class="label">Type :</span>
+            <mat-chip-set>
+              <mat-chip [color]="getStatutColor(data.absence.type_absence)">
+                {{ getTypeAbsenceLabel(data.absence.type_absence) }}
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+          <div class="info-item">
+            <span class="label">Période :</span>
+            <span class="value">
+              {{ data.absence.date_debut | date:'dd/MM/yyyy' }} - 
+              {{ data.absence.date_fin | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="label">Nombre de jours :</span>
+            <span class="value">{{ data.absence.nombre_jours }} jour{{ data.absence.nombre_jours > 1 ? 's' : '' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Statut :</span>
+            <mat-chip-set>
+              <mat-chip [color]="getStatutColor(data.absence.statut)">
+                <mat-icon matChipAvatar>
+                  {{ data.absence.statut === 'approuve' ? 'check_circle' : 
+                     data.absence.statut === 'refuse' ? 'cancel' : 
+                     data.absence.statut === 'en_attente' ? 'schedule' : 'help' }}
+                </mat-icon>
+                {{ getStatutAbsenceLabel(data.absence.statut) }}
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+          <div class="info-item" *ngIf="data.absence.motif">
+            <span class="label">Motif :</span>
+            <span class="value">{{ data.absence.motif }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-card" *ngIf="data.absence.demandeur">
+        <div class="info-header">
+          <mat-icon>person_outline</mat-icon>
+          <h3>Demandeur</h3>
+        </div>
+        <div class="info-content">
+          <div class="info-item">
+            <span class="label">Demandé par :</span>
+            <span class="value">{{ data.absence.demandeur.nom }} {{ data.absence.demandeur.prenom }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Date de demande :</span>
+            <span class="value">{{ data.absence.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-card" *ngIf="data.absence.approbateur">
+        <div class="info-header">
+          <mat-icon>verified_user</mat-icon>
+          <h3>Approbation</h3>
+        </div>
+        <div class="info-content">
+          <div class="info-item">
+            <span class="label">Approuvé par :</span>
+            <span class="value">{{ data.absence.approbateur.nom }} {{ data.absence.approbateur.prenom }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Date d'approbation :</span>
+            <span class="value">{{ data.absence.date_approbation | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulaire -->
+    <form [formGroup]="absenceForm" (ngSubmit)="onSubmit()" class="absence-form">
+      <!-- Sélection du collaborateur (mode création uniquement) -->
+      <mat-form-field appearance="outline" class="full-width" *ngIf="mode === 'create'">
+        <mat-label>Collaborateur</mat-label>
+        <mat-select formControlName="collaborateur_id">
+          <mat-option *ngFor="let collab of data.collaborateurs" [value]="collab.id">
+            {{ collab.nom }} {{ collab.prenom }} - {{ collab.email }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matPrefix>person</mat-icon>
+        <mat-error *ngIf="absenceForm.get('collaborateur_id')?.hasError('required')">
+          Le collaborateur est requis
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Type d'absence -->
+      <mat-form-field appearance="outline" class="full-width" *ngIf="mode === 'create'">
+        <mat-label>Type d'absence</mat-label>
+        <mat-select formControlName="type_absence">
+          <mat-option *ngFor="let type of getTypesAbsence()" [value]="type">
+            {{ getTypeAbsenceLabel(type) }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matPrefix>category</mat-icon>
+        <mat-error *ngIf="absenceForm.get('type_absence')?.hasError('required')">
+          Le type d'absence est requis
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Dates -->
+      <div class="date-row" *ngIf="mode === 'create'">
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>Date de début</mat-label>
+          <input matInput [matDatepicker]="pickerDebut" formControlName="date_debut">
+          <mat-datepicker-toggle matSuffix [for]="pickerDebut"></mat-datepicker-toggle>
+          <mat-datepicker #pickerDebut></mat-datepicker>
+          <mat-icon matPrefix>date_range</mat-icon>
+          <mat-error *ngIf="absenceForm.get('date_debut')?.hasError('required')">
+            La date de début est requise
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>Date de fin</mat-label>
+          <input matInput [matDatepicker]="pickerFin" formControlName="date_fin">
+          <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
+          <mat-datepicker #pickerFin></mat-datepicker>
+          <mat-icon matPrefix>date_range</mat-icon>
+          <mat-error *ngIf="absenceForm.get('date_fin')?.hasError('required')">
+            La date de fin est requise
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Affichage du nombre de jours calculé -->
+      <div class="jours-info" *ngIf="nombreJours > 0 && mode === 'create'">
+        <mat-icon>schedule</mat-icon>
+        <span>Durée calculée : {{ nombreJours }} jour{{ nombreJours > 1 ? 's' : '' }}</span>
+      </div>
+
+      <!-- Motif -->
+      <mat-form-field appearance="outline" class="full-width" *ngIf="mode === 'create'">
+        <mat-label>Motif (optionnel)</mat-label>
+        <textarea matInput formControlName="motif" rows="3" placeholder="Décrivez le motif de l'absence..."></textarea>
+        <mat-icon matPrefix>description</mat-icon>
+      </mat-form-field>
+
+      <!-- Commentaires (pour approbation/refus) -->
+      <mat-form-field appearance="outline" class="full-width" *ngIf="isApprovalMode()">
+        <mat-label>
+          {{ mode === 'approve' ? 'Commentaires d\'approbation' : 'Raison du refus' }}
+          {{ mode === 'reject' ? ' (requis)' : ' (optionnel)' }}
+        </mat-label>
+        <textarea matInput 
+                  formControlName="commentaires" 
+                  rows="4" 
+                  [placeholder]="mode === 'approve' ? 'Commentaires sur l\'approbation...' : 'Expliquez la raison du refus...'">
+        </textarea>
+        <mat-icon matPrefix>comment</mat-icon>
+        <mat-error *ngIf="mode === 'reject' && absenceForm.get('commentaires')?.hasError('required')">
+          La raison du refus est requise
+        </mat-error>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+
+  <!-- Actions du dialog -->
+  <mat-dialog-actions class="dialog-actions" *ngIf="!isViewMode()">
+    <button mat-stroked-button (click)="onCancel()" [disabled]="isLoading" class="cancel-button">
+      <mat-icon>close</mat-icon>
+      Annuler
+    </button>
+    
+    <button mat-raised-button 
+            [color]="getSubmitButtonColor()"
+            (click)="onSubmit()" 
+            [disabled]="absenceForm.invalid || isLoading"
+            class="submit-button">
+      <mat-spinner diameter="20" *ngIf="isLoading" class="button-spinner"></mat-spinner>
+      <mat-icon *ngIf="!isLoading">
+        {{ mode === 'create' ? 'add' : 
+           mode === 'edit' ? 'save' : 
+           mode === 'approve' ? 'check_circle' : 'cancel' }}
+      </mat-icon>
+      <span *ngIf="!isLoading">{{ getSubmitButtonText() }}</span>
+      <span *ngIf="isLoading">Traitement...</span>
+    </button>
+  </mat-dialog-actions>
+
+  <!-- Actions pour le mode view -->
+  <mat-dialog-actions class="dialog-actions" *ngIf="isViewMode()">
+    <button mat-raised-button color="primary" mat-dialog-close class="close-view-button">
+      <mat-icon>close</mat-icon>
+      Fermer
+    </button>
+  </mat-dialog-actions>
+</div>

@@ -1,0 +1,262 @@
+<div class="absences-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon>event_busy</mat-icon>
+          Gestion des Absences
+        </h1>
+        <p class="page-subtitle">Gérez les demandes d'absence des collaborateurs</p>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" (click)="openAbsenceDialog()" class="add-button">
+          <mat-icon>add</mat-icon>
+          Nouvelle Absence
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <mat-card class="filters-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>filter_list</mat-icon>
+        Filtres
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="filterForm" class="filters-form">
+        <div class="filter-row">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Statut</mat-label>
+            <mat-select formControlName="statut">
+              <mat-option value="">Tous les statuts</mat-option>
+              <mat-option *ngFor="let statut of getStatutsAbsence()" [value]="statut">
+                {{ getStatutAbsenceLabel(statut) }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>flag</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Type d'absence</mat-label>
+            <mat-select formControlName="type_absence">
+              <mat-option value="">Tous les types</mat-option>
+              <mat-option *ngFor="let type of getTypesAbsence()" [value]="type">
+                {{ getTypeAbsenceLabel(type) }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>category</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Collaborateur</mat-label>
+            <mat-select formControlName="collaborateur_id">
+              <mat-option value="">Tous les collaborateurs</mat-option>
+              <mat-option *ngFor="let collab of collaborateurs" [value]="collab.id">
+                {{ collab.nom }} {{ collab.prenom }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>person</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="filter-row">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Date début</mat-label>
+            <input matInput [matDatepicker]="pickerDebut" formControlName="date_debut">
+            <mat-datepicker-toggle matSuffix [for]="pickerDebut"></mat-datepicker-toggle>
+            <mat-datepicker #pickerDebut></mat-datepicker>
+            <mat-icon matPrefix>date_range</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Date fin</mat-label>
+            <input matInput [matDatepicker]="pickerFin" formControlName="date_fin">
+            <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFin></mat-datepicker>
+            <mat-icon matPrefix>date_range</mat-icon>
+          </mat-form-field>
+
+          <div class="filter-actions">
+            <button mat-stroked-button (click)="clearFilters()" class="clear-filters-btn">
+              <mat-icon>clear</mat-icon>
+              Effacer
+            </button>
+          </div>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tableau des absences -->
+  <mat-card class="table-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Liste des Absences ({{ totalAbsences }})
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="table-container">
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Chargement des absences...</p>
+        </div>
+
+        <table mat-table [dataSource]="absences" class="absences-table" *ngIf="!isLoading">
+          <!-- Colonne Collaborateur -->
+          <ng-container matColumnDef="collaborateur">
+            <th mat-header-cell *matHeaderCellDef>Collaborateur</th>
+            <td mat-cell *matCellDef="let absence">
+              <div class="collaborateur-info">
+                <div class="collaborateur-avatar">
+                  <mat-icon>person</mat-icon>
+                </div>
+                <div class="collaborateur-details">
+                  <div class="collaborateur-name">
+                    {{ absence.collaborateur?.nom }} {{ absence.collaborateur?.prenom }}
+                  </div>
+                  <div class="collaborateur-email">
+                    {{ absence.collaborateur?.email }}
+                  </div>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Type d'absence -->
+          <ng-container matColumnDef="type_absence">
+            <th mat-header-cell *matHeaderCellDef>Type</th>
+            <td mat-cell *matCellDef="let absence">
+              <mat-chip-set>
+                <mat-chip [color]="getStatutColor(absence.type_absence)">
+                  {{ getTypeAbsenceLabel(absence.type_absence) }}
+                </mat-chip>
+              </mat-chip-set>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Période -->
+          <ng-container matColumnDef="periode">
+            <th mat-header-cell *matHeaderCellDef>Période</th>
+            <td mat-cell *matCellDef="let absence">
+              <div class="periode-info">
+                <div class="periode-dates">
+                  <mat-icon>date_range</mat-icon>
+                  {{ formatPeriode(absence) }}
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Nombre de jours -->
+          <ng-container matColumnDef="nombre_jours">
+            <th mat-header-cell *matHeaderCellDef>Jours</th>
+            <td mat-cell *matCellDef="let absence">
+              <div class="jours-badge">
+                <mat-icon>schedule</mat-icon>
+                {{ absence.nombre_jours }} jour{{ absence.nombre_jours > 1 ? 's' : '' }}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Statut -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef>Statut</th>
+            <td mat-cell *matCellDef="let absence">
+              <mat-chip-set>
+                <mat-chip [color]="getStatutColor(absence.statut)">
+                  <mat-icon matChipAvatar>
+                    {{ absence.statut === 'approuve' ? 'check_circle' : 
+                       absence.statut === 'refuse' ? 'cancel' : 
+                       absence.statut === 'en_attente' ? 'schedule' : 'help' }}
+                  </mat-icon>
+                  {{ getStatutAbsenceLabel(absence.statut) }}
+                </mat-chip>
+              </mat-chip-set>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Demandeur -->
+          <ng-container matColumnDef="demandeur">
+            <th mat-header-cell *matHeaderCellDef>Demandeur</th>
+            <td mat-cell *matCellDef="let absence">
+              <div class="demandeur-info">
+                {{ absence.demandeur?.nom }} {{ absence.demandeur?.prenom }}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Date de création -->
+          <ng-container matColumnDef="date_creation">
+            <th mat-header-cell *matHeaderCellDef>Créé le</th>
+            <td mat-cell *matCellDef="let absence">
+              <div class="date-info">
+                <mat-icon>access_time</mat-icon>
+                {{ absence.created_at | date:'dd/MM/yyyy HH:mm' }}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let absence">
+              <div class="actions-container">
+                <button mat-icon-button 
+                        matTooltip="Voir les détails"
+                        (click)="openAbsenceDialog(absence)"
+                        class="action-btn view-btn">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+
+                <button mat-icon-button 
+                        matTooltip="Approuver"
+                        (click)="approuverAbsence(absence)"
+                        *ngIf="canApprove(absence)"
+                        class="action-btn approve-btn">
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+
+                <button mat-icon-button 
+                        matTooltip="Refuser"
+                        (click)="refuserAbsence(absence)"
+                        *ngIf="canReject(absence)"
+                        class="action-btn reject-btn">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="absence-row"></tr>
+        </table>
+
+        <!-- Message si aucune absence -->
+        <div *ngIf="!isLoading && absences.length === 0" class="no-data">
+          <mat-icon>event_busy</mat-icon>
+          <h3>Aucune absence trouvée</h3>
+          <p>Il n'y a aucune absence correspondant aux critères de recherche.</p>
+          <button mat-raised-button color="primary" (click)="openAbsenceDialog()">
+            <mat-icon>add</mat-icon>
+            Créer une absence
+          </button>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator 
+        [length]="totalAbsences"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+        class="table-paginator">
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

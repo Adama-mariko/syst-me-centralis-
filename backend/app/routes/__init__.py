@@ -6,6 +6,11 @@ from .entreprises import entreprises_bp
 from .placements import placements_bp
 from .remplacements import remplacements_bp
 from .mouvements import mouvements_bp
+from .absences import absences_bp
+from .notifications import notifications_bp
+from .rapports import rapports_bp
+from .competences import competences_bp
+from .tracabilite import tracabilite_bp
 
 def register_blueprints(app):
     """Register all blueprints with the Flask app"""
@@ -17,3 +22,8 @@ def register_blueprints(app):
     app.register_blueprint(placements_bp, url_prefix='/api/placements')
     app.register_blueprint(remplacements_bp, url_prefix='/api/remplacements')
     app.register_blueprint(mouvements_bp, url_prefix='/api/mouvements')
+    app.register_blueprint(absences_bp, url_prefix='/api')
+    app.register_blueprint(notifications_bp, url_prefix='/api')
+    app.register_blueprint(rapports_bp, url_prefix='/api')
+    app.register_blueprint(competences_bp, url_prefix='/api')
+    app.register_blueprint(tracabilite_bp, url_prefix='/api')

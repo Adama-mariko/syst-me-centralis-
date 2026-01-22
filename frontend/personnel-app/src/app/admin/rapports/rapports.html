@@ -1,0 +1,244 @@
+<div class="rapports-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon>assessment</mat-icon>
+          Rapports et Statistiques
+        </h1>
+        <p class="page-subtitle">Générez et consultez les rapports du système</p>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" (click)="openRapportDialog('placements')" class="action-button">
+          <mat-icon>work</mat-icon>
+          Rapport Placements
+        </button>
+        <button mat-raised-button color="accent" (click)="openRapportDialog('absences')" class="action-button">
+          <mat-icon>event_busy</mat-icon>
+          Rapport Absences
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistiques globales -->
+  <div class="stats-section" *ngIf="statistiques && !isLoadingStats">
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>group</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistiques.total_collaborateurs }}</div>
+              <div class="stat-label">Collaborateurs</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>business</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistiques.total_entreprises }}</div>
+              <div class="stat-label">Entreprises</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>assignment</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistiques.total_placements }}</div>
+              <div class="stat-label">Placements</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>event_busy</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistiques.total_absences }}</div>
+              <div class="stat-label">Absences</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Graphique d'évolution -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Évolution Mensuelle</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-container">
+          <canvas id="evolutionChart" width="400" height="200"></canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Loading des statistiques -->
+  <div *ngIf="isLoadingStats" class="loading-stats">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des statistiques...</p>
+  </div>
+
+  <!-- Liste des rapports -->
+  <mat-card class="table-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Rapports Générés ({{ totalRapports }})
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="table-container">
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Chargement des rapports...</p>
+        </div>
+
+        <table mat-table [dataSource]="rapports" class="rapports-table" *ngIf="!isLoading">
+          <!-- Colonne Titre -->
+          <ng-container matColumnDef="titre">
+            <th mat-header-cell *matHeaderCellDef>Titre</th>
+            <td mat-cell *matCellDef="let rapport">
+              <div class="rapport-title">
+                <mat-icon>{{ rapport.type_rapport === 'mensuel_placements' ? 'work' : 'event_busy' }}</mat-icon>
+                {{ rapport.titre }}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Type -->
+          <ng-container matColumnDef="type_rapport">
+            <th mat-header-cell *matHeaderCellDef>Type</th>
+            <td mat-cell *matCellDef="let rapport">
+              <mat-chip-set>
+                <mat-chip color="primary">
+                  {{ getTypeRapportLabel(rapport.type_rapport) }}
+                </mat-chip>
+              </mat-chip-set>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Période -->
+          <ng-container matColumnDef="periode">
+            <th mat-header-cell *matHeaderCellDef>Période</th>
+            <td mat-cell *matCellDef="let rapport">
+              <div class="periode-info">
+                <mat-icon>date_range</mat-icon>
+                {{ formatPeriode(rapport) }}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Statut -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef>Statut</th>
+            <td mat-cell *matCellDef="let rapport">
+              <mat-chip-set>
+                <mat-chip [color]="getStatutColor(rapport.statut)">
+                  {{ getStatutRapportLabel(rapport.statut) }}
+                </mat-chip>
+              </mat-chip-set>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Générateur -->
+          <ng-container matColumnDef="generateur">
+            <th mat-header-cell *matHeaderCellDef>Généré par</th>
+            <td mat-cell *matCellDef="let rapport">
+              <div class="generateur-info">
+                {{ rapport.generateur?.nom }} {{ rapport.generateur?.prenom }}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Date de création -->
+          <ng-container matColumnDef="date_creation">
+            <th mat-header-cell *matHeaderCellDef>Créé le</th>
+            <td mat-cell *matCellDef="let rapport">
+              <div class="date-info">
+                <mat-icon>access_time</mat-icon>
+                {{ rapport.created_at | date:'dd/MM/yyyy HH:mm' }}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let rapport">
+              <div class="actions-container">
+                <button mat-icon-button 
+                        matTooltip="Voir les détails"
+                        (click)="viewRapportDetails(rapport)"
+                        *ngIf="canView(rapport)"
+                        class="action-btn view-btn">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+
+                <button mat-icon-button 
+                        matTooltip="Télécharger CSV"
+                        (click)="downloadRapport(rapport)"
+                        *ngIf="canDownload(rapport)"
+                        class="action-btn download-btn">
+                  <mat-icon>download</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="rapport-row"></tr>
+        </table>
+
+        <!-- Message si aucun rapport -->
+        <div *ngIf="!isLoading && rapports.length === 0" class="no-data">
+          <mat-icon>assessment</mat-icon>
+          <h3>Aucun rapport généré</h3>
+          <p>Commencez par générer votre premier rapport.</p>
+          <div class="no-data-actions">
+            <button mat-raised-button color="primary" (click)="openRapportDialog('placements')">
+              <mat-icon>work</mat-icon>
+              Rapport Placements
+            </button>
+            <button mat-raised-button color="accent" (click)="openRapportDialog('absences')">
+              <mat-icon>event_busy</mat-icon>
+              Rapport Absences
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator 
+        [length]="totalRapports"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+        class="table-paginator">
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

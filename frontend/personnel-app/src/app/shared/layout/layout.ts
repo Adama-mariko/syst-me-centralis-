@@ -44,11 +44,16 @@ export class LayoutComponent implements OnInit {
     '/admin/users': 'Gestion des utilisateurs',
     '/admin/entreprises': 'Gestion des entreprises',
     '/admin/collaborateurs': 'Gestion des collaborateurs',
+    '/admin/absences': 'Gestion des absences',
+    '/admin/rapports': 'Rapports et statistiques',
     '/admin/placements': 'Gestion des placements',
     '/admin/remplacements': 'Gestion des remplacements',
     '/admin/mouvements': 'Traçabilité des mouvements',
+    '/admin/notifications': 'Centre de notifications',
+    '/admin/competences': 'Gestion des compétences',
     '/rh/dashboard': 'Tableau de bord RH',
     '/rh/collaborateurs': 'Mes collaborateurs',
+    '/rh/absences': 'Gestion des absences',
     '/rh/placements': 'Placements',
     '/rh/validations': 'Validations'
   };

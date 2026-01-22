@@ -29,7 +29,10 @@ def create_app():
         return send_from_directory('uploads', filename)
     
     # Import models to ensure they are registered with SQLAlchemy
-    from app.models import User, Entreprise, Collaborateur, Placement, Remplacement, Mouvement
+    from app.models import (
+        User, Entreprise, Collaborateur, Placement, Remplacement, Mouvement,
+        Absence, Notification, Rapport, SecurityLog, Competence, CollaborateurCompetence
+    )
     
     # Register blueprints
     from app.routes import register_blueprints

@@ -3,8 +3,10 @@ from datetime import datetime
 from enum import Enum
 
 class UserRole(Enum):
+    SUPER_ADMIN = "super_admin"
     ADMIN = "admin"
     RH_ENTREPRISE = "rh_entreprise"
+    VIEWER = "viewer"
 
 class User(db.Model):
     __tablename__ = 'users'

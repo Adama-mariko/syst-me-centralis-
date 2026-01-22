@@ -5,6 +5,8 @@ import { DashboardComponent } from './admin/dashboard/dashboard';
 import { CollaborateursComponent } from './admin/collaborateurs/collaborateurs';
 import { EntreprisesComponent } from './admin/entreprises/entreprises';
 import { UsersComponent } from './admin/users/users';
+import { AbsencesComponent } from './admin/absences/absences';
+import { RapportsComponent } from './admin/rapports/rapports';
 import { authGuard, adminGuard, rhGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -23,9 +25,13 @@ export const routes: Routes = [
           { path: 'collaborateurs', component: CollaborateursComponent },
           { path: 'entreprises', component: EntreprisesComponent },
           { path: 'users', component: UsersComponent },
+          { path: 'absences', component: AbsencesComponent },
+          { path: 'rapports', component: RapportsComponent },
           { path: 'placements', component: DashboardComponent }, // TODO: Créer le composant
           { path: 'remplacements', component: DashboardComponent }, // TODO: Créer le composant
           { path: 'mouvements', component: DashboardComponent }, // TODO: Créer le composant
+          { path: 'notifications', component: DashboardComponent }, // TODO: Créer le composant
+          { path: 'competences', component: DashboardComponent }, // TODO: Créer le composant
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
       },
@@ -35,6 +41,7 @@ export const routes: Routes = [
         children: [
           { path: 'dashboard', component: DashboardComponent },
           { path: 'collaborateurs', component: CollaborateursComponent },
+          { path: 'absences', component: AbsencesComponent },
           { path: 'placements', component: DashboardComponent }, // TODO: Créer le composant
           { path: 'validations', component: DashboardComponent }, // TODO: Créer le composant
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
