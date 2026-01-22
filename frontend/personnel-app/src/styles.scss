@@ -182,3 +182,126 @@ body {
   background: #3b82f6 !important;
   color: white !important;
 }
+
+// Theme Settings Styles
+// Dark Theme
+body.dark-theme {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+
+  .mat-mdc-card {
+    background-color: #334155 !important;
+    color: #e2e8f0 !important;
+  }
+
+  .mat-toolbar {
+    background-color: #0f172a !important;
+    color: #e2e8f0 !important;
+  }
+
+  .sidenav {
+    background-color: #0f172a !important;
+  }
+
+  .page-content {
+    background-color: #1e293b !important;
+  }
+
+  .mat-mdc-form-field {
+    .mat-mdc-text-field-wrapper {
+      background-color: #475569 !important;
+    }
+    
+    .mat-mdc-form-field-input-control {
+      color: #e2e8f0 !important;
+    }
+  }
+
+  .mat-mdc-table {
+    background-color: #334155 !important;
+    color: #e2e8f0 !important;
+  }
+
+  .mat-mdc-header-row {
+    background-color: #475569 !important;
+  }
+
+  .mat-mdc-row:hover {
+    background-color: #475569 !important;
+  }
+}
+
+// No Animations
+body.no-animations * {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}
+
+// Compact Sidebar
+body.compact-sidebar {
+  .sidenav {
+    width: 60px !important;
+    
+    .sidenav-header {
+      .logo-text {
+        display: none;
+      }
+      
+      .user-details {
+        display: none;
+      }
+    }
+    
+    .nav-list {
+      a[mat-list-item] {
+        span[matListItemTitle] {
+          display: none;
+        }
+      }
+      
+      h3[mat-subheader] {
+        display: none;
+      }
+    }
+  }
+  
+  .main-content {
+    margin-left: 60px;
+  }
+}
+
+// Language-specific styles (for future i18n implementation)
+body[lang="en"] {
+  font-family: 'Roboto', 'Arial', sans-serif;
+}
+
+body[lang="fr"] {
+  font-family: 'Roboto', 'Arial', sans-serif;
+}
+
+body[lang="es"] {
+  font-family: 'Roboto', 'Arial', sans-serif;
+}
+
+// Settings Dialog specific styles
+.settings-dialog {
+  .mat-mdc-dialog-container {
+    max-width: 700px !important;
+    width: 90vw !important;
+  }
+}
+
+// Responsive adjustments for settings
+@media (max-width: 768px) {
+  body.compact-sidebar {
+    .sidenav {
+      width: 280px !important;
+    }
+    
+    .main-content {
+      margin-left: 0 !important;
+    }
+  }
+}

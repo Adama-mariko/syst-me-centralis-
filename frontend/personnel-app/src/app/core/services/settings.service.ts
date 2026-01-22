@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { TranslationService } from './translation.service';
 
 export interface AppSettings {
   darkMode: boolean;
@@ -38,7 +39,7 @@ export class SettingsService {
   private settingsSubject = new BehaviorSubject<AppSettings>(this.defaultSettings);
   public settings$ = this.settingsSubject.asObservable();
 
-  constructor() {
+  constructor(private translationService: TranslationService) {
     this.loadSettings();
   }
 
@@ -97,6 +98,9 @@ export class SettingsService {
     } else {
       document.body.classList.remove('compact-sidebar');
     }
+
+    // Appliquer la langue
+    this.translationService.setLanguage(settings.language);
   }
 
   resetSettings(): void {

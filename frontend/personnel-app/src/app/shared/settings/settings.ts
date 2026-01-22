@@ -9,20 +9,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
-interface AppSettings {
-  darkMode: boolean;
-  animations: boolean;
-  compactSidebar: boolean;
-  pushNotifications: boolean;
-  emailNotifications: boolean;
-  notificationSounds: boolean;
-  autoRefresh: boolean;
-  itemsPerPage: number;
-  language: string;
-  autoLogout: boolean;
-  sessionDuration: number;
-}
+import { SettingsService, AppSettings } from '../../core/services/settings.service';
+import { TranslationService } from '../../core/services/translation.service';
+import { TranslatePipe } from '../pipes/translate.pipe';
 
 @Component({
   selector: 'app-settings',
@@ -36,7 +25,8 @@ interface AppSettings {
     MatButtonModule,
     MatIconModule,
     MatSlideToggleModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    TranslatePipe
   ],
   templateUrl: './settings.html',
   styleUrl: './settings.scss'
@@ -58,10 +48,17 @@ export class SettingsComponent implements OnInit {
 
   isLoading = false;
   private originalSettings: AppSettings = { ...this.settings };
+  availableLanguages = [
+    { code: 'fr', name: 'Français' },
+    { code: 'en', name: 'English' },
+    { code: 'es', name: 'Español' }
+  ];
 
   constructor(
     private dialogRef: MatDialogRef<SettingsComponent>,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private settingsService: SettingsService,
+    private translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
@@ -69,23 +66,17 @@ export class SettingsComponent implements OnInit {
   }
 
   private loadSettings(): void {
-    // Charger les paramètres depuis le localStorage
-    const savedSettings = localStorage.getItem('app-settings');
-    if (savedSettings) {
-      try {
-        this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
-        this.originalSettings = { ...this.settings };
-      } catch (error) {
-        console.error('Erreur lors du chargement des paramètres:', error);
-      }
-    }
+    // Charger les paramètres depuis le service
+    this.settings = { ...this.settingsService.getSettings() };
+    this.originalSettings = { ...this.settings };
   }
 
   onSettingChange(key: keyof AppSettings, value: any): void {
     this.settings[key] = value as never;
     
-    // Appliquer certains changements immédiatement
-    this.applySettingChange(key, value);
+    // Appliquer le changement immédiatement via le service
+    const partialUpdate = { [key]: value } as Partial<AppSettings>;
+    this.settingsService.updateSettings(partialUpdate);
   }
 
   private applySettingChange(key: keyof AppSettings, value: any): void {
@@ -132,7 +123,7 @@ export class SettingsComponent implements OnInit {
   }
 
   exportSettings(): void {
-    const dataStr = JSON.stringify(this.settings, null, 2);
+    const dataStr = this.settingsService.exportSettings();
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     
     const link = document.createElement('a');
@@ -156,20 +147,17 @@ export class SettingsComponent implements OnInit {
       if (file) {
         const reader = new FileReader();
         reader.onload = (e: any) => {
-          try {
-            const importedSettings = JSON.parse(e.target.result);
-            this.settings = { ...this.settings, ...importedSettings };
-            
-            // Appliquer tous les paramètres
-            Object.keys(this.settings).forEach(key => {
-              this.applySettingChange(key as keyof AppSettings, this.settings[key as keyof AppSettings]);
-            });
+          const success = this.settingsService.importSettings(e.target.result);
+          
+          if (success) {
+            // Recharger les paramètres dans le composant
+            this.loadSettings();
             
             this.snackBar.open('Paramètres importés avec succès', 'Fermer', {
               duration: 3000,
               panelClass: ['success-snackbar']
             });
-          } catch (error) {
+          } else {
             this.snackBar.open('Erreur lors de l\'importation', 'Fermer', {
               duration: 3000,
               panelClass: ['error-snackbar']
@@ -185,25 +173,8 @@ export class SettingsComponent implements OnInit {
 
   resetSettings(): void {
     if (confirm('Êtes-vous sûr de vouloir réinitialiser tous les paramètres ?')) {
-      // Réinitialiser aux valeurs par défaut
-      this.settings = {
-        darkMode: false,
-        animations: true,
-        compactSidebar: false,
-        pushNotifications: true,
-        emailNotifications: false,
-        notificationSounds: true,
-        autoRefresh: true,
-        itemsPerPage: 25,
-        language: 'fr',
-        autoLogout: false,
-        sessionDuration: 60
-      };
-
-      // Appliquer tous les paramètres
-      Object.keys(this.settings).forEach(key => {
-        this.applySettingChange(key as keyof AppSettings, this.settings[key as keyof AppSettings]);
-      });
+      this.settingsService.resetSettings();
+      this.loadSettings(); // Recharger les paramètres dans le composant
 
       this.snackBar.open('Paramètres réinitialisés', 'Fermer', {
         duration: 3000,
@@ -215,15 +186,16 @@ export class SettingsComponent implements OnInit {
   onSave(): void {
     this.isLoading = true;
     
-    // Sauvegarder dans le localStorage
-    localStorage.setItem('app-settings', JSON.stringify(this.settings));
+    // Sauvegarder tous les paramètres via le service
+    this.settingsService.updateSettings(this.settings);
     
     // Simuler un délai de sauvegarde
     setTimeout(() => {
       this.isLoading = false;
       this.originalSettings = { ...this.settings };
       
-      this.snackBar.open('Paramètres sauvegardés', 'Fermer', {
+      const message = this.translationService.translate('message.settingsSaved');
+      this.snackBar.open(message, this.translationService.translate('common.close'), {
         duration: 3000,
         panelClass: ['success-snackbar']
       });
@@ -237,9 +209,8 @@ export class SettingsComponent implements OnInit {
     const hasChanges = JSON.stringify(this.settings) !== JSON.stringify(this.originalSettings);
     
     if (hasChanges) {
-      Object.keys(this.originalSettings).forEach(key => {
-        this.applySettingChange(key as keyof AppSettings, this.originalSettings[key as keyof AppSettings]);
-      });
+      // Restaurer les paramètres originaux via le service
+      this.settingsService.updateSettings(this.originalSettings);
     }
     
     this.dialogRef.close();

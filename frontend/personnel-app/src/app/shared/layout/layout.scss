@@ -9,13 +9,13 @@
 
 .sidenav {
   width: 280px;
-  background: #1e293b;
+  background: #5888e9;
   color: white;
   border-right: none;
 
   .sidenav-header {
     padding: 24px 16px;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid #5a97ec;
 
     .logo {
       display: flex;
@@ -41,7 +41,7 @@
       align-items: center;
       gap: 12px;
       padding: 12px;
-      background: #334155;
+      background: #347ce1;
       border-radius: 8px;
 
       .user-avatar {
@@ -88,7 +88,7 @@
     padding: 16px 0;
 
     h3[mat-subheader] {
-      color: #94a3b8;
+      color: white;
       font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
@@ -97,7 +97,7 @@
     }
 
     a[mat-list-item] {
-      color: #cbd5e1;
+      color: white;
       margin: 2px 8px;
       border-radius: 8px;
       transition: all 0.2s ease;

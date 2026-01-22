@@ -1,57 +1,125 @@
 <div class="login-container">
-  <div class="login-card">
-    <div class="login-header">
-      <div class="logo">
-        <mat-icon class="logo-icon">business</mat-icon>
-        <h1>Personnel Manager</h1>
-      </div>
-      <p class="subtitle">Système de gestion de personnel</p>
+  <!-- Section gauche avec l'image de fond -->
+  <div class="login-left">
+    <img src="/page-login.jpg" 
+         alt="Background" 
+         class="background-image"
+         (error)="onImageError($event)"
+         (load)="onImageLoad($event)">
+    <div class="welcome-content">
+      <h1 class="welcome-title">Bienvenue !</h1>
+      <p class="welcome-subtitle">Système centralisé de gestion du personnel</p>
     </div>
+  </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Email</mat-label>
-        <input matInput type="email" formControlName="email" placeholder="votre@email.com">
-        <mat-icon matSuffix>email</mat-icon>
-        <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
-          L'email est requis
-        </mat-error>
-        <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
-          Format d'email invalide
-        </mat-error>
-      </mat-form-field>
+  <!-- Section droite avec le formulaire -->
+  <div class="login-right">
+    <div class="login-form-container">
+      <!-- Logo et titre -->
+      <div class="login-header">
+        <div class="login-icon">
+          <mat-icon>login</mat-icon>
+        </div>
+        <h2 class="login-title">Rapport</h2>
+        <p class="login-subtitle">Accédez à votre espace de travail</p>
+      </div>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Mot de passe</mat-label>
-        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password">
-        <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
-          <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
-        </button>
-        <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
-          Le mot de passe est requis
-        </mat-error>
-      </mat-form-field>
+      <!-- Formulaire de connexion -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        <!-- Champ Email -->
+        <div class="form-group">
+          <label class="form-label">Adresse e-mail</label>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-icon matPrefix>email</mat-icon>
+            <input matInput 
+                   type="email" 
+                   formControlName="email" 
+                   placeholder="votre@email.com"
+                   autocomplete="email">
+            <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
+              L'email est requis
+            </mat-error>
+            <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
+              Format d'email invalide
+            </mat-error>
+          </mat-form-field>
+        </div>
 
-      <div class="login-actions">
-        <button mat-raised-button color="primary" type="submit" 
-                [disabled]="loginForm.invalid || isLoading" class="login-button">
-          <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+        <!-- Champ Mot de passe -->
+        <div class="form-group">
+          <label class="form-label">Mot de passe</label>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-icon matPrefix>lock</mat-icon>
+            <input matInput 
+                   [type]="hidePassword ? 'password' : 'text'" 
+                   formControlName="password" 
+                   placeholder="••••••••"
+                   autocomplete="current-password">
+            <button mat-icon-button 
+                    matSuffix 
+                    (click)="hidePassword = !hidePassword" 
+                    type="button"
+                    class="password-toggle">
+              <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+              Le mot de passe est requis
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Options -->
+        <div class="login-options">
+          <mat-checkbox formControlName="rememberMe" class="remember-me">
+            Se souvenir de moi
+          </mat-checkbox>
+          <a href="#" class="forgot-password">Mot de passe oublié ?</a>
+        </div>
+
+        <!-- Message d'erreur -->
+        <div *ngIf="errorMessage" class="error-message">
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <!-- Bouton de connexion -->
+        <button mat-raised-button 
+                color="primary" 
+                type="submit" 
+                class="login-button"
+                [disabled]="loginForm.invalid || isLoading">
+          <mat-spinner *ngIf="isLoading" diameter="20" class="login-spinner"></mat-spinner>
+          <mat-icon *ngIf="!isLoading">login</mat-icon>
           <span *ngIf="!isLoading">Se connecter</span>
+          <span *ngIf="isLoading">Connexion...</span>
         </button>
-      </div>
+      </form>
 
-      <div *ngIf="errorMessage" class="error-message">
-        <mat-icon>error</mat-icon>
-        <span>{{ errorMessage }}</span>
-      </div>
-    </form>
-
-    <div class="demo-credentials">
-      <mat-divider></mat-divider>
-      <p class="demo-title">Comptes de démonstration :</p>
-      <div class="demo-accounts">
+      <!-- Comptes de démonstration -->
+      <div class="demo-credentials">
+        <mat-divider></mat-divider>
+        <p class="demo-title">Compte de démonstration :</p>
         <div class="demo-account">
-          <strong>Admin :</strong> admin@personnel.com / admin123
+          <mat-icon>account_circle</mat-icon>
+          <div class="demo-info">
+            <strong>Admin :</strong> admin@personnel.com
+            <br>
+            <strong>Mot de passe :</strong> admin123
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="login-footer">
+        <p class="footer-text">
+          © 2026 Personnel Manager. Tous droits réservés.
+        </p>
+        <div class="footer-links">
+          <a href="#">Aide</a>
+          <span>•</span>
+          <a href="#">Confidentialité</a>
+          <span>•</span>
+          <a href="#">Conditions</a>
         </div>
       </div>
     </div>

@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -23,7 +24,8 @@ import { AuthService } from '../../core/services/auth.service';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatDividerModule
+    MatDividerModule,
+    MatCheckboxModule
   ],
   templateUrl: './login.html',
   styleUrl: './login.scss'
@@ -41,7 +43,8 @@ export class LoginComponent {
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required]]
+      password: ['', [Validators.required]],
+      rememberMe: [false]
     });
   }
 
@@ -66,5 +69,18 @@ export class LoginComponent {
         }
       });
     }
+  }
+
+  onImageError(event: any): void {
+    console.error('Erreur de chargement de l\'image:', event);
+    // Fallback: utiliser une couleur de fond
+    const loginLeft = document.querySelector('.login-left') as HTMLElement;
+    if (loginLeft) {
+      loginLeft.style.backgroundColor = '#6366f1';
+    }
+  }
+
+  onImageLoad(event: any): void {
+    console.log('Image chargée avec succès:', event);
   }
 }
