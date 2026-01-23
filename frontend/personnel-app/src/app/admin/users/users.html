@@ -1,12 +1,12 @@
-<div class="users-container">
+<div class="users-container modern-page">
   <!-- Header avec actions -->
-  <div class="page-header">
+  <div class="page-header modern-header">
     <div class="header-content">
-      <h2>Gestion des Utilisateurs</h2>
+      <h2 class="page-title">Gestion des Utilisateurs</h2>
       <p class="subtitle">{{ users.length }} utilisateur(s) du système</p>
     </div>
     <div class="header-actions">
-      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()" class="modern-button primary-gradient">
         <mat-icon>person_add</mat-icon>
         Nouvel Utilisateur
       </button>
@@ -14,17 +14,17 @@
   </div>
 
   <!-- Filtres et recherche -->
-  <mat-card class="filters-card">
+  <mat-card class="filters-card modern-card">
     <mat-card-content>
       <div class="filters-row">
-        <mat-form-field appearance="outline" class="search-field">
+        <mat-form-field appearance="outline" class="search-field modern-form-field">
           <mat-label>Rechercher</mat-label>
           <input matInput [(ngModel)]="searchTerm" (input)="applyFilters()" 
                  placeholder="Nom, email...">
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="modern-form-field">
           <mat-label>Rôle</mat-label>
           <mat-select [(ngModel)]="selectedRole" (selectionChange)="applyFilters()">
             <mat-option value="">Tous</mat-option>
@@ -33,7 +33,7 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="modern-form-field">
           <mat-label>Statut</mat-label>
           <mat-select [(ngModel)]="selectedStatus" (selectionChange)="applyFilters()">
             <mat-option value="">Tous</mat-option>
@@ -42,7 +42,7 @@
           </mat-select>
         </mat-form-field>
 
-        <button mat-icon-button (click)="clearFilters()" matTooltip="Effacer les filtres">
+        <button mat-icon-button (click)="clearFilters()" matTooltip="Effacer les filtres" class="clear-filters-btn">
           <mat-icon>clear</mat-icon>
         </button>
       </div>
@@ -50,62 +50,63 @@
   </mat-card>
 
   <!-- Grille des utilisateurs -->
-  <div class="users-grid" *ngIf="!isLoading">
-    <mat-card class="user-card" *ngFor="let user of filteredUsers">
-      <mat-card-header>
-        <div mat-card-avatar class="user-avatar" [ngClass]="'role-' + user.role">
+  <div class="users-grid modern-grid" *ngIf="!isLoading">
+    <mat-card class="user-card modern-card user-card-enhanced" *ngFor="let user of filteredUsers">
+      <mat-card-header class="enhanced-header">
+        <div mat-card-avatar class="user-avatar modern-avatar" [ngClass]="'role-' + user.role">
           <mat-icon>{{ getRoleIcon(user.role) }}</mat-icon>
         </div>
-        <mat-card-title>{{ user.prenom }} {{ user.nom }}</mat-card-title>
-        <mat-card-subtitle>{{ user.email }}</mat-card-subtitle>
+        <mat-card-title class="user-name">{{ user.prenom }} {{ user.nom }}</mat-card-title>
+        <mat-card-subtitle class="user-email">{{ user.email }}</mat-card-subtitle>
         
         <button mat-icon-button [matMenuTriggerFor]="actionsMenu" 
-                [matMenuTriggerData]="{user: user}">
+                [matMenuTriggerData]="{user: user}" class="actions-btn">
           <mat-icon>more_vert</mat-icon>
         </button>
       </mat-card-header>
 
-      <mat-card-content>
+      <mat-card-content class="enhanced-content">
         <div class="user-info">
           <div class="info-row">
-            <mat-icon>badge</mat-icon>
-            <span class="role-badge" [ngClass]="'role-' + user.role">
+            <mat-icon class="info-icon">badge</mat-icon>
+            <span class="role-badge modern-chip" [ngClass]="'role-' + user.role">
               {{ getRoleLabel(user.role) }}
             </span>
           </div>
           
           <div class="info-row" *ngIf="user.entreprise_id">
-            <mat-icon>business</mat-icon>
-            <span>{{ getEntrepriseName(user.entreprise_id) }}</span>
+            <mat-icon class="info-icon">business</mat-icon>
+            <span class="info-text">{{ getEntrepriseName(user.entreprise_id) }}</span>
           </div>
           
           <div class="info-row">
-            <mat-icon>schedule</mat-icon>
-            <span>Créé le {{ formatDate(user.created_at) }}</span>
+            <mat-icon class="info-icon">schedule</mat-icon>
+            <span class="info-text">Créé le {{ formatDate(user.created_at) }}</span>
           </div>
 
           <div class="info-row">
-            <mat-icon>update</mat-icon>
-            <span>Modifié le {{ formatDate(user.updated_at) }}</span>
+            <mat-icon class="info-icon">update</mat-icon>
+            <span class="info-text">Modifié le {{ formatDate(user.updated_at) }}</span>
           </div>
         </div>
       </mat-card-content>
 
-      <mat-card-actions>
+      <mat-card-actions class="enhanced-actions">
         <div class="card-footer">
-          <mat-chip [ngClass]="user.is_active ? 'status-active' : 'status-inactive'">
+          <mat-chip class="modern-chip" [ngClass]="user.is_active ? 'status-active' : 'status-inactive'">
             {{ user.is_active ? 'Actif' : 'Inactif' }}
           </mat-chip>
           
           <div class="card-actions">
-            <button mat-icon-button (click)="editUser(user)" matTooltip="Modifier">
+            <button mat-icon-button (click)="editUser(user)" matTooltip="Modifier" class="action-btn edit-btn">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button (click)="resetPassword(user)" matTooltip="Réinitialiser mot de passe">
+            <button mat-icon-button (click)="resetPassword(user)" matTooltip="Réinitialiser mot de passe" class="action-btn reset-btn">
               <mat-icon>lock_reset</mat-icon>
             </button>
             <button mat-icon-button (click)="toggleStatus(user)" 
-                    [matTooltip]="user.is_active ? 'Désactiver' : 'Activer'">
+                    [matTooltip]="user.is_active ? 'Désactiver' : 'Activer'"
+                    class="action-btn" [ngClass]="user.is_active ? 'deactivate-btn' : 'activate-btn'">
               <mat-icon>{{ user.is_active ? 'block' : 'check_circle' }}</mat-icon>
             </button>
           </div>
@@ -115,27 +116,27 @@
   </div>
 
   <!-- Menu d'actions -->
-  <mat-menu #actionsMenu="matMenu">
+  <mat-menu #actionsMenu="matMenu" class="modern-menu">
     <ng-template matMenuContent let-user="user">
-      <button mat-menu-item (click)="viewUser(user)">
+      <button mat-menu-item (click)="viewUser(user)" class="menu-item-modern">
         <mat-icon>visibility</mat-icon>
         <span>Voir détails</span>
       </button>
-      <button mat-menu-item (click)="editUser(user)">
+      <button mat-menu-item (click)="editUser(user)" class="menu-item-modern">
         <mat-icon>edit</mat-icon>
         <span>Modifier</span>
       </button>
-      <button mat-menu-item (click)="resetPassword(user)">
+      <button mat-menu-item (click)="resetPassword(user)" class="menu-item-modern">
         <mat-icon>lock_reset</mat-icon>
         <span>Réinitialiser mot de passe</span>
       </button>
       <mat-divider></mat-divider>
       <button mat-menu-item (click)="toggleStatus(user)" 
-              [ngClass]="user.is_active ? 'deactivate-action' : 'activate-action'">
+              class="menu-item-modern" [ngClass]="user.is_active ? 'deactivate-action' : 'activate-action'">
         <mat-icon>{{ user.is_active ? 'block' : 'check_circle' }}</mat-icon>
         <span>{{ user.is_active ? 'Désactiver' : 'Activer' }}</span>
       </button>
-      <button mat-menu-item (click)="deleteUser(user)" class="delete-action" 
+      <button mat-menu-item (click)="deleteUser(user)" class="menu-item-modern delete-action" 
               *ngIf="user.id !== currentUserId">
         <mat-icon>delete</mat-icon>
         <span>Supprimer</span>
@@ -144,11 +145,13 @@
   </mat-menu>
 
   <!-- Message si aucun résultat -->
-  <div class="no-data" *ngIf="filteredUsers.length === 0 && !isLoading">
-    <mat-icon>people_outline</mat-icon>
+  <div class="no-data modern-empty-state" *ngIf="filteredUsers.length === 0 && !isLoading">
+    <div class="empty-icon">
+      <mat-icon>people_outline</mat-icon>
+    </div>
     <h3>Aucun utilisateur trouvé</h3>
     <p>Essayez de modifier vos critères de recherche ou ajoutez un nouvel utilisateur.</p>
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+    <button mat-raised-button color="primary" (click)="openCreateDialog()" class="modern-button primary-gradient">
       <mat-icon>person_add</mat-icon>
       Ajouter un utilisateur
     </button>
@@ -156,7 +159,7 @@
 </div>
 
 <!-- Loading spinner -->
-<div class="loading-container" *ngIf="isLoading">
+<div class="loading-container modern-loading" *ngIf="isLoading">
   <mat-spinner></mat-spinner>
   <p>Chargement des utilisateurs...</p>
 </div>

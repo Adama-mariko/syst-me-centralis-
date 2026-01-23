@@ -27,20 +27,27 @@
         <!-- Menu principal -->
         <div class="main-menu">
           <!-- Tableau de bord -->
-          <div class="menu-item" [class.active]="isRouteActive('/admin/dashboard')" (click)="navigateTo('/admin/dashboard')">
+          <div class="menu-item" 
+               [class.active]="isRouteActive(isAdmin() ? '/admin/dashboard' : '/rh/dashboard')" 
+               (click)="navigateTo(isAdmin() ? '/admin/dashboard' : '/rh/dashboard')">
             <mat-icon class="menu-icon">dashboard</mat-icon>
             <span class="menu-text">Tableau de bord</span>
           </div>
 
-          <!-- Utilisateurs -->
-          <div class="menu-item" [class.active]="isRouteActive('/admin/users')" (click)="navigateTo('/admin/users')">
+          <!-- Utilisateurs (Admin seulement) -->
+          <div class="menu-item" 
+               [class.active]="isRouteActive('/admin/users')" 
+               (click)="navigateTo('/admin/users')"
+               *ngIf="isAdmin()">
             <mat-icon class="menu-icon">people</mat-icon>
             <span class="menu-text">Utilisateurs</span>
           </div>
 
           <!-- Entreprises avec sous-menu -->
-          <div class="menu-item" [class.active]="isRouteActive('/admin/entreprises')" [class.expanded]="expandedMenus.entreprises">
-            <div class="menu-header" (click)="toggleMenu('entreprises')">
+          <div class="menu-item" 
+               [class.active]="isRouteActive(isAdmin() ? '/admin/entreprises' : '/admin/entreprises')" 
+               [class.expanded]="expandedMenus.entreprises">
+            <div class="menu-header" (click)="toggleMenu('entreprises'); $event.stopPropagation()">
               <div class="menu-main">
                 <mat-icon class="menu-icon">business</mat-icon>
                 <span class="menu-text">Entreprises</span>
@@ -48,15 +55,15 @@
               <mat-icon class="expand-icon" [class.rotated]="expandedMenus.entreprises">expand_more</mat-icon>
             </div>
             <div class="submenu" [class.show]="expandedMenus.entreprises">
-              <div class="submenu-item" (click)="navigateTo('/admin/entreprises')">
+              <div class="submenu-item" (click)="navigateTo('/admin/entreprises'); $event.stopPropagation()">
                 <mat-icon class="submenu-icon">list</mat-icon>
                 <span class="submenu-text">Liste des entreprises</span>
               </div>
-              <div class="submenu-item" (click)="navigateTo('/admin/placements')">
+              <div class="submenu-item" (click)="navigateTo(isAdmin() ? '/admin/placements' : '/rh/placements'); $event.stopPropagation()">
                 <mat-icon class="submenu-icon">assignment</mat-icon>
                 <span class="submenu-text">Placements</span>
               </div>
-              <div class="submenu-item" (click)="navigateTo('/admin/remplacements')">
+              <div class="submenu-item" (click)="navigateTo('/admin/remplacements'); $event.stopPropagation()" *ngIf="isAdmin()">
                 <mat-icon class="submenu-icon">swap_horiz</mat-icon>
                 <span class="submenu-text">Remplacements</span>
               </div>
@@ -64,8 +71,10 @@
           </div>
 
           <!-- Collaborateurs avec sous-menu -->
-          <div class="menu-item" [class.active]="isRouteActive('/admin/collaborateurs')" [class.expanded]="expandedMenus.collaborateurs">
-            <div class="menu-header" (click)="toggleMenu('collaborateurs')">
+          <div class="menu-item" 
+               [class.active]="isRouteActive(isAdmin() ? '/admin/collaborateurs' : '/rh/collaborateurs')" 
+               [class.expanded]="expandedMenus.collaborateurs">
+            <div class="menu-header" (click)="toggleMenu('collaborateurs'); $event.stopPropagation()">
               <div class="menu-main">
                 <mat-icon class="menu-icon">group</mat-icon>
                 <span class="menu-text">Collaborateurs</span>
@@ -73,24 +82,31 @@
               <mat-icon class="expand-icon" [class.rotated]="expandedMenus.collaborateurs">expand_more</mat-icon>
             </div>
             <div class="submenu" [class.show]="expandedMenus.collaborateurs">
-              <div class="submenu-item" (click)="navigateTo('/admin/collaborateurs')">
+              <div class="submenu-item" (click)="navigateTo(isAdmin() ? '/admin/collaborateurs' : '/rh/collaborateurs'); $event.stopPropagation()">
                 <mat-icon class="submenu-icon">list</mat-icon>
-                <span class="submenu-text">Liste des collaborateurs</span>
+                <span class="submenu-text">{{ isAdmin() ? 'Liste des collaborateurs' : 'Mes collaborateurs' }}</span>
               </div>
-              <div class="submenu-item" (click)="navigateTo('/admin/absences')">
+              <div class="submenu-item" (click)="navigateTo(isAdmin() ? '/admin/absences' : '/rh/absences'); $event.stopPropagation()">
                 <mat-icon class="submenu-icon">event_busy</mat-icon>
                 <span class="submenu-text">Absences</span>
               </div>
-              <div class="submenu-item" (click)="navigateTo('/admin/competences')">
+              <div class="submenu-item" (click)="navigateTo('/admin/competences'); $event.stopPropagation()" *ngIf="isAdmin()">
                 <mat-icon class="submenu-icon">psychology</mat-icon>
                 <span class="submenu-text">Compétences</span>
+              </div>
+              <div class="submenu-item" (click)="navigateTo('/rh/validations'); $event.stopPropagation()" *ngIf="isRH()">
+                <mat-icon class="submenu-icon">check_circle</mat-icon>
+                <span class="submenu-text">Validations</span>
               </div>
             </div>
           </div>
 
-          <!-- Rapports avec sous-menu -->
-          <div class="menu-item" [class.active]="isRouteActive('/admin/rapports')" [class.expanded]="expandedMenus.rapports" *ngIf="isAdmin()">
-            <div class="menu-header" (click)="toggleMenu('rapports')">
+          <!-- Rapports avec sous-menu (Admin seulement) -->
+          <div class="menu-item" 
+               [class.active]="isRouteActive('/admin/rapports')" 
+               [class.expanded]="expandedMenus.rapports" 
+               *ngIf="isAdmin()">
+            <div class="menu-header" (click)="toggleMenu('rapports'); $event.stopPropagation()">
               <div class="menu-main">
                 <mat-icon class="menu-icon">assessment</mat-icon>
                 <span class="menu-text">Rapports</span>
@@ -98,15 +114,15 @@
               <mat-icon class="expand-icon" [class.rotated]="expandedMenus.rapports">expand_more</mat-icon>
             </div>
             <div class="submenu" [class.show]="expandedMenus.rapports">
-              <div class="submenu-item" (click)="navigateTo('/admin/rapports')">
+              <div class="submenu-item" (click)="navigateTo('/admin/rapports'); $event.stopPropagation()">
                 <mat-icon class="submenu-icon">assessment</mat-icon>
                 <span class="submenu-text">Génération de rapports</span>
               </div>
-              <div class="submenu-item" (click)="navigateTo('/admin/notifications')">
+              <div class="submenu-item" (click)="navigateTo('/admin/notifications'); $event.stopPropagation()">
                 <mat-icon class="submenu-icon">notifications</mat-icon>
                 <span class="submenu-text">Notifications</span>
               </div>
-              <div class="submenu-item" (click)="navigateTo('/admin/mouvements')">
+              <div class="submenu-item" (click)="navigateTo('/admin/mouvements'); $event.stopPropagation()">
                 <mat-icon class="submenu-icon">history</mat-icon>
                 <span class="submenu-text">Traçabilité</span>
               </div>
@@ -116,7 +132,7 @@
 
         <!-- Bouton de déconnexion -->
         <div class="logout-section">
-          <div class="logout-button" (click)="logout()">
+          <div class="logout-button" (click)="logout(); $event.stopPropagation()">
             <mat-icon class="logout-icon">logout</mat-icon>
             <span class="logout-text">Déconnexion</span>
           </div>

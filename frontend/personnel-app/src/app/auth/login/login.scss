@@ -214,14 +214,13 @@
 
         .forgot-password {
           color: #6366f1;
-          text-decoration: none;
+          text-decoration: none !important;
           font-size: 0.875rem;
           font-weight: 500;
           transition: color 0.2s ease;
 
           &:hover {
             color: #4f46e5;
-            text-decoration: underline;
           }
         }
       }

@@ -41,7 +41,7 @@ import { UserDialogComponent } from './user-dialog/user-dialog';
     MatDividerModule
   ],
   templateUrl: './users.html',
-  styleUrl: './users.scss'
+  styleUrls: ['./users.scss']
 })
 export class UsersComponent implements OnInit {
   users: User[] = [];

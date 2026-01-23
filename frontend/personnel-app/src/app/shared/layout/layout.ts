@@ -106,16 +106,32 @@ export class LayoutComponent implements OnInit {
 
   // Nouvelle fonction pour basculer les sous-menus
   toggleMenu(menuName: keyof typeof this.expandedMenus): void {
+    // Fermer tous les autres menus
+    Object.keys(this.expandedMenus).forEach(key => {
+      if (key !== menuName) {
+        this.expandedMenus[key as keyof typeof this.expandedMenus] = false;
+      }
+    });
+    // Basculer le menu sélectionné
     this.expandedMenus[menuName] = !this.expandedMenus[menuName];
   }
 
   // Nouvelle fonction pour naviguer
   navigateTo(route: string): void {
-    this.router.navigate([route]);
+    // Vérifier que la route existe avant de naviguer
+    if (route && route.length > 0) {
+      this.router.navigate([route]).catch(error => {
+        console.error('Erreur de navigation:', error);
+        // En cas d'erreur, rediriger vers le dashboard approprié
+        const fallbackRoute = this.isAdmin() ? '/admin/dashboard' : '/rh/dashboard';
+        this.router.navigate([fallbackRoute]);
+      });
+    }
   }
 
   // Nouvelle fonction pour vérifier si une route est active
   isRouteActive(route: string): boolean {
+    if (!route) return false;
     return this.router.url.startsWith(route);
   }
 
