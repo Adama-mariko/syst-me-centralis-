@@ -41,6 +41,7 @@ export const routes: Routes = [
         children: [
           { path: 'dashboard', component: DashboardComponent },
           { path: 'collaborateurs', component: CollaborateursComponent },
+          { path: 'entreprises', component: EntreprisesComponent },
           { path: 'absences', component: AbsencesComponent },
           { path: 'placements', component: DashboardComponent }, // TODO: Créer le composant
           { path: 'validations', component: DashboardComponent }, // TODO: Créer le composant

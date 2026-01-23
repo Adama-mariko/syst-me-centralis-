@@ -120,12 +120,17 @@ export class LayoutComponent implements OnInit {
   navigateTo(route: string): void {
     // Vérifier que la route existe avant de naviguer
     if (route && route.length > 0) {
+      console.log(`Navigation vers: ${route}, Utilisateur: ${this.currentUser?.role}`);
       this.router.navigate([route]).catch(error => {
         console.error('Erreur de navigation:', error);
+        console.log('Route échouée:', route);
         // En cas d'erreur, rediriger vers le dashboard approprié
         const fallbackRoute = this.isAdmin() ? '/admin/dashboard' : '/rh/dashboard';
+        console.log('Redirection vers:', fallbackRoute);
         this.router.navigate([fallbackRoute]);
       });
+    } else {
+      console.error('Route invalide:', route);
     }
   }
 
