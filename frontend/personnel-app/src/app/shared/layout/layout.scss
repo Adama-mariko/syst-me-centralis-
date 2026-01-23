@@ -9,13 +9,15 @@
 
 .sidenav {
   width: 280px;
-  background: #5888e9;
-  color: white;
-  border-right: none;
+  background: white;
+  color: #334155;
+  border-right: 1px solid #e2e8f0;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 
   .sidenav-header {
     padding: 24px 16px;
-    border-bottom: 1px solid #5a97ec;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
 
     .logo {
       display: flex;
@@ -27,12 +29,13 @@
         font-size: 28px;
         width: 28px;
         height: 28px;
-        color: #3b82f6;
+        color: #6366f1;
       }
 
       .logo-text {
         font-size: 18px;
         font-weight: 600;
+        color: #1e293b;
       }
     }
 
@@ -41,8 +44,10 @@
       align-items: center;
       gap: 12px;
       padding: 12px;
-      background: #347ce1;
+      background: white;
       border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
       .user-avatar {
         width: 32px;
@@ -63,7 +68,7 @@
           font-size: 32px;
           width: 32px;
           height: 32px;
-          color: #94a3b8;
+          color: #6366f1;
         }
       }
 
@@ -74,58 +79,183 @@
           font-size: 14px;
           font-weight: 500;
           margin-bottom: 2px;
+          color: #1e293b;
         }
 
         .user-role {
           font-size: 12px;
-          color: #94a3b8;
+          color: #64748b;
         }
       }
     }
   }
 
-  .nav-list {
+  // Navigation personnalisée
+  .nav-menu {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 140px);
+    padding: 0;
+    background: white;
+  }
+
+  .main-menu {
+    flex: 1;
     padding: 16px 0;
+  }
 
-    h3[mat-subheader] {
+  .menu-item {
+    margin-bottom: 4px;
+    border-radius: 8px;
+    margin: 0 12px 4px 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    
+    &.active {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
       color: white;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin: 16px 16px 8px 16px;
-    }
-
-    a[mat-list-item] {
-      color: white;
-      margin: 2px 8px;
-      border-radius: 8px;
-      transition: all 0.2s ease;
-
-      &:hover {
-        background: #334155;
-        color: white;
-      }
-
-      &.active {
-        background: #3b82f6;
-        color: white;
-
-        mat-icon {
-          color: white;
-        }
-      }
-
-      mat-icon {
-        color: #94a3b8;
-        transition: color 0.2s ease;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+      
+      .menu-icon, .menu-text, .expand-icon {
+        color: white !important;
       }
     }
-
-    mat-divider {
-      margin: 16px;
-      border-color: #334155;
+    
+    &.expanded {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
     }
+    
+    &:hover:not(.active) {
+      background: #f1f5f9;
+      transform: translateX(4px);
+    }
+  }
+
+  .menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .menu-main {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  .menu-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    color: #64748b;
+    transition: color 0.3s ease;
+  }
+
+  .menu-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+    transition: color 0.3s ease;
+    text-decoration: none !important;
+  }
+
+  .expand-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #94a3b8;
+    transition: all 0.3s ease;
+    
+    &.rotated {
+      transform: rotate(180deg);
+    }
+  }
+
+  // Sous-menus
+  .submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    
+    &.show {
+      max-height: 200px;
+    }
+  }
+
+  .submenu-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px 10px 48px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none !important;
+    
+    &:hover {
+      background: #e2e8f0;
+      transform: translateX(4px);
+    }
+  }
+
+  .submenu-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    color: #64748b;
+  }
+
+  .submenu-text {
+    font-size: 13px;
+    color: #475569;
+    font-weight: 400;
+    text-decoration: none !important;
+  }
+
+  // Section de déconnexion
+  .logout-section {
+    padding: 16px 12px;
+    border-top: 1px solid #e2e8f0;
+    background: #fafafa;
+  }
+
+  .logout-button {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #ef4444;
+    color: white;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+    
+    &:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+    }
+  }
+
+  .logout-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    color: white;
+  }
+
+  .logout-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    text-decoration: none !important;
   }
 }
 
@@ -174,6 +304,27 @@
   padding: 24px;
 }
 
+// Suppression des traits soulignés globalement
+a, .menu-text, .submenu-text, .logout-text {
+  text-decoration: none !important;
+}
+
+// Animations
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.menu-item {
+  animation: slideIn 0.3s ease forwards;
+}
+
 // Responsive
 @media (max-width: 768px) {
   .sidenav {
@@ -185,30 +336,23 @@
   .page-content {
     padding: 16px;
   }
+  
+  .menu-text, .submenu-text {
+    font-size: 13px;
+  }
+  
+  .menu-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+  
+  .submenu-item {
+    padding-left: 40px;
+  }
 }
 
-// Animations
+// Transitions fluides
 .sidenav {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-a[mat-list-item] {
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 3px;
-    background: #3b82f6;
-    transform: scaleY(0);
-    transition: transform 0.2s ease;
-  }
-
-  &.active::before {
-    transform: scaleY(1);
-  }
 }

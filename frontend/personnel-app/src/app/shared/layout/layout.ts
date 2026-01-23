@@ -38,6 +38,13 @@ import { SettingsComponent } from '../settings/settings';
 export class LayoutComponent implements OnInit {
   currentUser: User | null = null;
   pageTitle = 'Tableau de bord';
+  
+  // État des sous-menus
+  expandedMenus = {
+    entreprises: false,
+    collaborateurs: false,
+    rapports: false
+  };
 
   private pageTitles: { [key: string]: string } = {
     '/admin/dashboard': 'Tableau de bord Admin',
@@ -95,6 +102,21 @@ export class LayoutComponent implements OnInit {
       default:
         return role;
     }
+  }
+
+  // Nouvelle fonction pour basculer les sous-menus
+  toggleMenu(menuName: keyof typeof this.expandedMenus): void {
+    this.expandedMenus[menuName] = !this.expandedMenus[menuName];
+  }
+
+  // Nouvelle fonction pour naviguer
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
+  }
+
+  // Nouvelle fonction pour vérifier si une route est active
+  isRouteActive(route: string): boolean {
+    return this.router.url.startsWith(route);
   }
 
   openProfile(): void {

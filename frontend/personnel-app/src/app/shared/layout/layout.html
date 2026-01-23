@@ -23,98 +23,105 @@
       </div>
 
       <!-- Navigation -->
-      <mat-nav-list class="nav-list">
-        <!-- Menu Admin -->
-        <div *ngIf="isAdmin()">
-          <h3 mat-subheader>Administration</h3>
-          <a mat-list-item routerLink="/admin/dashboard" routerLinkActive="active">
-            <mat-icon matListItemIcon>dashboard</mat-icon>
-            <span matListItemTitle>Tableau de bord</span>
-          </a>
-          <a mat-list-item routerLink="/admin/users" routerLinkActive="active">
-            <mat-icon matListItemIcon>people</mat-icon>
-            <span matListItemTitle>Utilisateurs</span>
-          </a>
-          <a mat-list-item routerLink="/admin/entreprises" routerLinkActive="active">
-            <mat-icon matListItemIcon>business</mat-icon>
-            <span matListItemTitle>Entreprises</span>
-          </a>
-          <a mat-list-item routerLink="/admin/collaborateurs" routerLinkActive="active">
-            <mat-icon matListItemIcon>group</mat-icon>
-            <span matListItemTitle>Collaborateurs</span>
-          </a>
-          
-          <mat-divider class="menu-divider"></mat-divider>
-          <h3 mat-subheader>Gestion</h3>
-          <a mat-list-item routerLink="/admin/absences" routerLinkActive="active">
-            <mat-icon matListItemIcon>event_busy</mat-icon>
-            <span matListItemTitle>Absences</span>
-          </a>
-          <a mat-list-item routerLink="/admin/placements" routerLinkActive="active">
-            <mat-icon matListItemIcon>assignment</mat-icon>
-            <span matListItemTitle>Placements</span>
-          </a>
-          <a mat-list-item routerLink="/admin/remplacements" routerLinkActive="active">
-            <mat-icon matListItemIcon>swap_horiz</mat-icon>
-            <span matListItemTitle>Remplacements</span>
-          </a>
-          <a mat-list-item routerLink="/admin/competences" routerLinkActive="active">
-            <mat-icon matListItemIcon>psychology</mat-icon>
-            <span matListItemTitle>Compétences</span>
-          </a>
-          
-          <mat-divider class="menu-divider"></mat-divider>
-          <h3 mat-subheader>Suivi & Rapports</h3>
-          <a mat-list-item routerLink="/admin/rapports" routerLinkActive="active">
-            <mat-icon matListItemIcon>assessment</mat-icon>
-            <span matListItemTitle>Rapports</span>
-          </a>
-          <a mat-list-item routerLink="/admin/notifications" routerLinkActive="active">
-            <mat-icon matListItemIcon>notifications</mat-icon>
-            <span matListItemTitle>Notifications</span>
-          </a>
-          <a mat-list-item routerLink="/admin/mouvements" routerLinkActive="active">
-            <mat-icon matListItemIcon>history</mat-icon>
-            <span matListItemTitle>Traçabilité</span>
-          </a>
+      <div class="nav-menu">
+        <!-- Menu principal -->
+        <div class="main-menu">
+          <!-- Tableau de bord -->
+          <div class="menu-item" [class.active]="isRouteActive('/admin/dashboard')" (click)="navigateTo('/admin/dashboard')">
+            <mat-icon class="menu-icon">dashboard</mat-icon>
+            <span class="menu-text">Tableau de bord</span>
+          </div>
+
+          <!-- Utilisateurs -->
+          <div class="menu-item" [class.active]="isRouteActive('/admin/users')" (click)="navigateTo('/admin/users')">
+            <mat-icon class="menu-icon">people</mat-icon>
+            <span class="menu-text">Utilisateurs</span>
+          </div>
+
+          <!-- Entreprises avec sous-menu -->
+          <div class="menu-item" [class.active]="isRouteActive('/admin/entreprises')" [class.expanded]="expandedMenus.entreprises">
+            <div class="menu-header" (click)="toggleMenu('entreprises')">
+              <div class="menu-main">
+                <mat-icon class="menu-icon">business</mat-icon>
+                <span class="menu-text">Entreprises</span>
+              </div>
+              <mat-icon class="expand-icon" [class.rotated]="expandedMenus.entreprises">expand_more</mat-icon>
+            </div>
+            <div class="submenu" [class.show]="expandedMenus.entreprises">
+              <div class="submenu-item" (click)="navigateTo('/admin/entreprises')">
+                <mat-icon class="submenu-icon">list</mat-icon>
+                <span class="submenu-text">Liste des entreprises</span>
+              </div>
+              <div class="submenu-item" (click)="navigateTo('/admin/placements')">
+                <mat-icon class="submenu-icon">assignment</mat-icon>
+                <span class="submenu-text">Placements</span>
+              </div>
+              <div class="submenu-item" (click)="navigateTo('/admin/remplacements')">
+                <mat-icon class="submenu-icon">swap_horiz</mat-icon>
+                <span class="submenu-text">Remplacements</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Collaborateurs avec sous-menu -->
+          <div class="menu-item" [class.active]="isRouteActive('/admin/collaborateurs')" [class.expanded]="expandedMenus.collaborateurs">
+            <div class="menu-header" (click)="toggleMenu('collaborateurs')">
+              <div class="menu-main">
+                <mat-icon class="menu-icon">group</mat-icon>
+                <span class="menu-text">Collaborateurs</span>
+              </div>
+              <mat-icon class="expand-icon" [class.rotated]="expandedMenus.collaborateurs">expand_more</mat-icon>
+            </div>
+            <div class="submenu" [class.show]="expandedMenus.collaborateurs">
+              <div class="submenu-item" (click)="navigateTo('/admin/collaborateurs')">
+                <mat-icon class="submenu-icon">list</mat-icon>
+                <span class="submenu-text">Liste des collaborateurs</span>
+              </div>
+              <div class="submenu-item" (click)="navigateTo('/admin/absences')">
+                <mat-icon class="submenu-icon">event_busy</mat-icon>
+                <span class="submenu-text">Absences</span>
+              </div>
+              <div class="submenu-item" (click)="navigateTo('/admin/competences')">
+                <mat-icon class="submenu-icon">psychology</mat-icon>
+                <span class="submenu-text">Compétences</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rapports avec sous-menu -->
+          <div class="menu-item" [class.active]="isRouteActive('/admin/rapports')" [class.expanded]="expandedMenus.rapports" *ngIf="isAdmin()">
+            <div class="menu-header" (click)="toggleMenu('rapports')">
+              <div class="menu-main">
+                <mat-icon class="menu-icon">assessment</mat-icon>
+                <span class="menu-text">Rapports</span>
+              </div>
+              <mat-icon class="expand-icon" [class.rotated]="expandedMenus.rapports">expand_more</mat-icon>
+            </div>
+            <div class="submenu" [class.show]="expandedMenus.rapports">
+              <div class="submenu-item" (click)="navigateTo('/admin/rapports')">
+                <mat-icon class="submenu-icon">assessment</mat-icon>
+                <span class="submenu-text">Génération de rapports</span>
+              </div>
+              <div class="submenu-item" (click)="navigateTo('/admin/notifications')">
+                <mat-icon class="submenu-icon">notifications</mat-icon>
+                <span class="submenu-text">Notifications</span>
+              </div>
+              <div class="submenu-item" (click)="navigateTo('/admin/mouvements')">
+                <mat-icon class="submenu-icon">history</mat-icon>
+                <span class="submenu-text">Traçabilité</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Menu RH -->
-        <div *ngIf="isRH()">
-          <h3 mat-subheader>Ressources Humaines</h3>
-          <a mat-list-item routerLink="/rh/dashboard" routerLinkActive="active">
-            <mat-icon matListItemIcon>dashboard</mat-icon>
-            <span matListItemTitle>Tableau de bord</span>
-          </a>
-          <a mat-list-item routerLink="/rh/collaborateurs" routerLinkActive="active">
-            <mat-icon matListItemIcon>group</mat-icon>
-            <span matListItemTitle>Mes Collaborateurs</span>
-          </a>
-          
-          <mat-divider class="menu-divider"></mat-divider>
-          <h3 mat-subheader>Gestion</h3>
-          <a mat-list-item routerLink="/rh/absences" routerLinkActive="active">
-            <mat-icon matListItemIcon>event_busy</mat-icon>
-            <span matListItemTitle>Absences</span>
-          </a>
-          <a mat-list-item routerLink="/rh/placements" routerLinkActive="active">
-            <mat-icon matListItemIcon>assignment</mat-icon>
-            <span matListItemTitle>Placements</span>
-          </a>
-          <a mat-list-item routerLink="/rh/validations" routerLinkActive="active">
-            <mat-icon matListItemIcon>check_circle</mat-icon>
-            <span matListItemTitle>Validations</span>
-          </a>
+        <!-- Bouton de déconnexion -->
+        <div class="logout-section">
+          <div class="logout-button" (click)="logout()">
+            <mat-icon class="logout-icon">logout</mat-icon>
+            <span class="logout-text">Déconnexion</span>
+          </div>
         </div>
-
-        <mat-divider></mat-divider>
-
-        <!-- Actions communes -->
-        <a mat-list-item (click)="logout()">
-          <mat-icon matListItemIcon>logout</mat-icon>
-          <span matListItemTitle>Déconnexion</span>
-        </a>
-      </mat-nav-list>
+      </div>
     </mat-sidenav>
 
     <!-- Contenu principal -->
