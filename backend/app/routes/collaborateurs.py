@@ -33,11 +33,21 @@ def get_collaborateurs():
         return jsonify({'message': 'Erreur lors de la récupération', 'error': str(e)}), 500
 
 @collaborateurs_bp.route('', methods=['POST'])
-@AuthService.require_admin()
+@jwt_required()
 def create_collaborateur():
     """Création d'un nouveau collaborateur"""
     try:
-        data = request.get_json()
+        current_user = AuthService.get_current_user()
+        
+        # Vérifier que l'utilisateur peut créer des collaborateurs
+        if current_user.role.value not in ['admin', 'rh_entreprise']:
+            return jsonify({'message': 'Permissions insuffisantes'}), 403
+        
+        data = request.get_json() if request.is_json else {}
+        
+        # Si c'est un FormData (avec fichier), récupérer les données différemment
+        if not request.is_json:
+            data = request.form.to_dict()
         
         # Vérification des champs requis
         required_fields = ['nom', 'prenom', 'email', 'date_embauche', 'poste']
@@ -49,9 +59,37 @@ def create_collaborateur():
         if Collaborateur.query.filter_by(email=data['email']).first():
             return jsonify({'message': 'Cet email est déjà utilisé'}), 400
         
+        # Pour les RH, forcer l'entreprise_actuelle_id à leur entreprise
+        if current_user.role.value == 'rh_entreprise':
+            if not current_user.entreprise_id:
+                return jsonify({'message': 'Utilisateur RH non associé à une entreprise'}), 400
+            data['entreprise_actuelle_id'] = current_user.entreprise_id
+        
         # Génération du numéro d'employé
         last_collaborateur = Collaborateur.query.order_by(Collaborateur.id.desc()).first()
         numero_employe = f"EMP{(last_collaborateur.id + 1) if last_collaborateur else 1:06d}"
+        
+        # Gestion de l'upload de photo
+        photo_url = None
+        if 'photo' in request.files:
+            photo_file = request.files['photo']
+            if photo_file and photo_file.filename:
+                import os
+                import uuid
+                from werkzeug.utils import secure_filename
+                
+                # Créer le dossier uploads/collaborateurs s'il n'existe pas
+                upload_folder = os.path.join('uploads', 'collaborateurs')
+                os.makedirs(upload_folder, exist_ok=True)
+                
+                # Générer un nom de fichier unique
+                file_extension = os.path.splitext(secure_filename(photo_file.filename))[1]
+                filename = f"{uuid.uuid4().hex}{file_extension}"
+                file_path = os.path.join(upload_folder, filename)
+                
+                # Sauvegarder le fichier
+                photo_file.save(file_path)
+                photo_url = f"/uploads/collaborateurs/{filename}"
         
         # Création du collaborateur
         collaborateur = Collaborateur(
@@ -67,8 +105,9 @@ def create_collaborateur():
             date_embauche=datetime.strptime(data['date_embauche'], '%Y-%m-%d').date(),
             poste=data['poste'],
             competences=data.get('competences'),
-            salaire=data.get('salaire'),
-            entreprise_actuelle_id=data.get('entreprise_actuelle_id')
+            salaire=float(data['salaire']) if data.get('salaire') else None,
+            entreprise_actuelle_id=int(data['entreprise_actuelle_id']) if data.get('entreprise_actuelle_id') else None,
+            photo_url=photo_url
         )
         
         db.session.add(collaborateur)
@@ -81,6 +120,7 @@ def create_collaborateur():
         
     except Exception as e:
         db.session.rollback()
+        print(f"Erreur création collaborateur: {str(e)}")  # Pour debug
         return jsonify({'message': 'Erreur lors de la création', 'error': str(e)}), 500
 
 @collaborateurs_bp.route('/<int:collaborateur_id>', methods=['GET'])

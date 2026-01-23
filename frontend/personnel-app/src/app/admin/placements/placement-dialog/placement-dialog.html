@@ -1,0 +1,155 @@
+<div class="placement-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>{{ isEditMode ? 'edit' : 'assignment' }}</mat-icon>
+    {{ isEditMode ? 'Modifier le placement' : 'Nouveau placement' }}
+  </h2>
+
+  <mat-dialog-content>
+    <form [formGroup]="placementForm" class="placement-form">
+      <!-- Layout en deux colonnes -->
+      <div class="form-layout">
+        <!-- Colonne gauche -->
+        <div class="form-column">
+          <!-- Informations générales -->
+          <div class="form-section">
+            <h3>Informations générales</h3>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Collaborateur *</mat-label>
+              <mat-select formControlName="collaborateur_id">
+                <mat-option *ngFor="let collaborateur of collaborateurs" [value]="collaborateur.id">
+                  {{ collaborateur.prenom }} {{ collaborateur.nom }} - {{ collaborateur.poste }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="placementForm.get('collaborateur_id')?.hasError('required')">
+                Le collaborateur est requis
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Entreprise *</mat-label>
+              <mat-select formControlName="entreprise_id">
+                <mat-option *ngFor="let entreprise of entreprises" [value]="entreprise.id">
+                  {{ entreprise.nom }} - {{ entreprise.ville }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="placementForm.get('entreprise_id')?.hasError('required')">
+                L'entreprise est requise
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Poste *</mat-label>
+              <input matInput formControlName="poste" placeholder="Intitulé du poste">
+              <mat-error *ngIf="placementForm.get('poste')?.hasError('required')">
+                Le poste est requis
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Dates et durée -->
+          <div class="form-section">
+            <h3>Dates et durée</h3>
+            
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Date de début *</mat-label>
+                <input matInput [matDatepicker]="startPicker" formControlName="date_debut">
+                <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+                <mat-datepicker #startPicker></mat-datepicker>
+                <mat-error *ngIf="placementForm.get('date_debut')?.hasError('required')">
+                  La date de début est requise
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Date de fin</mat-label>
+                <input matInput [matDatepicker]="endPicker" formControlName="date_fin">
+                <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+                <mat-datepicker #endPicker></mat-datepicker>
+                <mat-hint>Laisser vide pour un placement indéterminé</mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <!-- Colonne droite -->
+        <div class="form-column">
+          <!-- Conditions financières -->
+          <div class="form-section">
+            <h3>Conditions financières</h3>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Salaire mensuel *</mat-label>
+              <input matInput type="number" formControlName="salaire" placeholder="0">
+              <span matTextPrefix>€&nbsp;</span>
+              <mat-error *ngIf="placementForm.get('salaire')?.hasError('required')">
+                Le salaire est requis
+              </mat-error>
+              <mat-error *ngIf="placementForm.get('salaire')?.hasError('min')">
+                Le salaire doit être positif
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Statut</mat-label>
+              <mat-select formControlName="statut">
+                <mat-option value="en_attente">
+                  <div class="status-option pending">
+                    <mat-icon>schedule</mat-icon>
+                    <span>En attente</span>
+                  </div>
+                </mat-option>
+                <mat-option value="en_cours">
+                  <div class="status-option active">
+                    <mat-icon>play_circle</mat-icon>
+                    <span>En cours</span>
+                  </div>
+                </mat-option>
+                <mat-option value="termine">
+                  <div class="status-option completed">
+                    <mat-icon>check_circle</mat-icon>
+                    <span>Terminé</span>
+                  </div>
+                </mat-option>
+                <mat-option value="annule">
+                  <div class="status-option cancelled">
+                    <mat-icon>cancel</mat-icon>
+                    <span>Annulé</span>
+                  </div>
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Détails supplémentaires -->
+          <div class="form-section">
+            <h3>Détails supplémentaires</h3>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description du poste</mat-label>
+              <textarea matInput formControlName="description" 
+                        placeholder="Décrivez les missions et responsabilités" rows="3"></textarea>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Conditions particulières</mat-label>
+              <textarea matInput formControlName="conditions" 
+                        placeholder="Horaires, avantages, contraintes..." rows="3"></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Annuler</button>
+    <button mat-raised-button color="primary" 
+            [disabled]="placementForm.invalid || isLoading" 
+            (click)="onSave()">
+      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+      <span *ngIf="!isLoading">{{ isEditMode ? 'Modifier' : 'Créer' }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>

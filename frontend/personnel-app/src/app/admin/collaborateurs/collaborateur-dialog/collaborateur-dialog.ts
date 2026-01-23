@@ -42,6 +42,8 @@ export class CollaborateurDialogComponent implements OnInit {
   isEditMode: boolean;
   isLoading = false;
   entreprises: Entreprise[] = [];
+  selectedImageUrl: string | null = null;
+  selectedImageFile: File | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -60,7 +62,64 @@ export class CollaborateurDialogComponent implements OnInit {
     
     if (this.isEditMode && this.data.collaborateur) {
       this.populateForm(this.data.collaborateur);
+      // Charger l'image existante si elle existe
+      if (this.data.collaborateur.photo_url) {
+        // Ne pas définir selectedImageUrl pour l'image existante, 
+        // elle sera affichée via getImageUrl dans le template
+        console.log('Image existante trouvée:', this.data.collaborateur.photo_url);
+      }
     }
+  }
+
+  // Nouvelle méthode pour gérer la sélection d'image
+  onImageSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      console.log('Fichier sélectionné:', file.name, file.type, file.size);
+      
+      // Vérifier le type de fichier
+      if (!file.type.startsWith('image/')) {
+        this.snackBar.open('Veuillez sélectionner un fichier image valide', 'Fermer', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+        return;
+      }
+
+      // Vérifier la taille du fichier (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        this.snackBar.open('La taille de l\'image ne doit pas dépasser 5MB', 'Fermer', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+        return;
+      }
+
+      this.selectedImageFile = file;
+
+      // Créer une URL de prévisualisation
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        console.log('Image chargée, URL:', e.target.result?.substring(0, 50) + '...');
+        this.selectedImageUrl = e.target.result;
+      };
+      reader.onerror = (error) => {
+        console.error('Erreur lors de la lecture du fichier:', error);
+        this.snackBar.open('Erreur lors de la lecture du fichier', 'Fermer', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      console.log('Aucun fichier sélectionné');
+    }
+  }
+
+  // Nouvelle méthode pour supprimer l'image
+  removeImage(): void {
+    this.selectedImageUrl = null;
+    this.selectedImageFile = null;
   }
 
   private createForm(): FormGroup {
@@ -115,18 +174,26 @@ export class CollaborateurDialogComponent implements OnInit {
   onSave(): void {
     if (this.collaborateurForm.valid) {
       this.isLoading = true;
-      const formData = { ...this.collaborateurForm.value };
       
-      // Nettoyer les données vides
-      Object.keys(formData).forEach(key => {
-        if (formData[key] === '' || formData[key] === null) {
-          delete formData[key];
+      // Créer FormData pour l'upload de fichier
+      const formData = new FormData();
+      
+      // Ajouter les données du formulaire
+      Object.keys(this.collaborateurForm.value).forEach(key => {
+        const value = this.collaborateurForm.value[key];
+        if (value !== '' && value !== null && value !== undefined) {
+          formData.append(key, value);
         }
       });
 
+      // Ajouter l'image si elle est sélectionnée
+      if (this.selectedImageFile) {
+        formData.append('photo', this.selectedImageFile);
+      }
+
       const request = this.isEditMode 
-        ? this.collaborateurService.updateCollaborateur(this.data.collaborateur!.id, formData)
-        : this.collaborateurService.createCollaborateur(formData);
+        ? this.collaborateurService.updateCollaborateurWithPhoto(this.data.collaborateur!.id, formData)
+        : this.collaborateurService.createCollaborateurWithPhoto(formData);
 
       request.subscribe({
         next: (response) => {
@@ -151,5 +218,15 @@ export class CollaborateurDialogComponent implements OnInit {
 
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  getImageUrl(photoUrl: string | undefined): string {
+    if (!photoUrl) return '';
+    // Si l'URL commence déjà par http, la retourner telle quelle
+    if (photoUrl.startsWith('http')) {
+      return photoUrl;
+    }
+    // Sinon, construire l'URL complète avec le backend
+    return `http://localhost:5000${photoUrl}`;
   }
 }

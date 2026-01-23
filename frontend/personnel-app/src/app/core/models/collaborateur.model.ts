@@ -15,6 +15,7 @@ export interface Collaborateur {
   salaire?: number;
   statut: 'actif' | 'inactif' | 'en_conge' | 'arret_maladie';
   entreprise_actuelle_id?: number;
+  photo_url?: string;
   is_validated_by_rh: boolean;
   validation_date?: string;
   created_at: string;

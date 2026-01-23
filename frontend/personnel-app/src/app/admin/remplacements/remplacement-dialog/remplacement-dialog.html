@@ -1,0 +1,183 @@
+<div class="remplacement-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>{{ isEditMode ? 'edit' : 'swap_horiz' }}</mat-icon>
+    {{ isEditMode ? 'Modifier le remplacement' : 'Nouveau remplacement' }}
+  </h2>
+
+  <mat-dialog-content>
+    <form [formGroup]="remplacementForm" class="remplacement-form">
+      <!-- Layout en deux colonnes -->
+      <div class="form-layout">
+        <!-- Colonne gauche -->
+        <div class="form-column">
+          <!-- Collaborateurs -->
+          <div class="form-section">
+            <h3>Collaborateurs concernés</h3>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Collaborateur remplaçant *</mat-label>
+              <mat-select formControlName="collaborateur_remplacant_id">
+                <mat-option *ngFor="let collaborateur of collaborateurs" [value]="collaborateur.id">
+                  <div class="collaborateur-option">
+                    <mat-icon class="option-icon remplacant">person_add</mat-icon>
+                    <span>{{ collaborateur.prenom }} {{ collaborateur.nom }} - {{ collaborateur.poste }}</span>
+                  </div>
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="remplacementForm.get('collaborateur_remplacant_id')?.hasError('required')">
+                Le collaborateur remplaçant est requis
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Collaborateur remplacé *</mat-label>
+              <mat-select formControlName="collaborateur_remplace_id">
+                <mat-option *ngFor="let collaborateur of collaborateurs" [value]="collaborateur.id">
+                  <div class="collaborateur-option">
+                    <mat-icon class="option-icon remplace">person_remove</mat-icon>
+                    <span>{{ collaborateur.prenom }} {{ collaborateur.nom }} - {{ collaborateur.poste }}</span>
+                  </div>
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="remplacementForm.get('collaborateur_remplace_id')?.hasError('required')">
+                Le collaborateur remplacé est requis
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Entreprise *</mat-label>
+              <mat-select formControlName="entreprise_id">
+                <mat-option *ngFor="let entreprise of entreprises" [value]="entreprise.id">
+                  {{ entreprise.nom }} - {{ entreprise.ville }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="remplacementForm.get('entreprise_id')?.hasError('required')">
+                L'entreprise est requise
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Dates -->
+          <div class="form-section">
+            <h3>Période de remplacement</h3>
+            
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Date de début *</mat-label>
+                <input matInput [matDatepicker]="startPicker" formControlName="date_debut">
+                <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+                <mat-datepicker #startPicker></mat-datepicker>
+                <mat-error *ngIf="remplacementForm.get('date_debut')?.hasError('required')">
+                  La date de début est requise
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Date de fin *</mat-label>
+                <input matInput [matDatepicker]="endPicker" formControlName="date_fin">
+                <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+                <mat-datepicker #endPicker></mat-datepicker>
+                <mat-error *ngIf="remplacementForm.get('date_fin')?.hasError('required')">
+                  La date de fin est requise
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <!-- Colonne droite -->
+        <div class="form-column">
+          <!-- Détails du remplacement -->
+          <div class="form-section">
+            <h3>Détails du remplacement</h3>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Motif du remplacement *</mat-label>
+              <mat-select formControlName="motif">
+                <mat-option value="conge">
+                  <div class="motif-option">
+                    <mat-icon class="motif-icon">beach_access</mat-icon>
+                    <span>Congés</span>
+                  </div>
+                </mat-option>
+                <mat-option value="maladie">
+                  <div class="motif-option">
+                    <mat-icon class="motif-icon">local_hospital</mat-icon>
+                    <span>Maladie</span>
+                  </div>
+                </mat-option>
+                <mat-option value="formation">
+                  <div class="motif-option">
+                    <mat-icon class="motif-icon">school</mat-icon>
+                    <span>Formation</span>
+                  </div>
+                </mat-option>
+                <mat-option value="maternite">
+                  <div class="motif-option">
+                    <mat-icon class="motif-icon">child_care</mat-icon>
+                    <span>Congé maternité</span>
+                  </div>
+                </mat-option>
+                <mat-option value="autre">
+                  <div class="motif-option">
+                    <mat-icon class="motif-icon">help_outline</mat-icon>
+                    <span>Autre</span>
+                  </div>
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="remplacementForm.get('motif')?.hasError('required')">
+                Le motif est requis
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Statut</mat-label>
+              <mat-select formControlName="statut">
+                <mat-option value="planifie">
+                  <div class="status-option planned">
+                    <mat-icon>schedule</mat-icon>
+                    <span>Planifié</span>
+                  </div>
+                </mat-option>
+                <mat-option value="en_cours">
+                  <div class="status-option active">
+                    <mat-icon>play_circle</mat-icon>
+                    <span>En cours</span>
+                  </div>
+                </mat-option>
+                <mat-option value="termine">
+                  <div class="status-option completed">
+                    <mat-icon>check_circle</mat-icon>
+                    <span>Terminé</span>
+                  </div>
+                </mat-option>
+                <mat-option value="annule">
+                  <div class="status-option cancelled">
+                    <mat-icon>cancel</mat-icon>
+                    <span>Annulé</span>
+                  </div>
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notes complémentaires</mat-label>
+              <textarea matInput formControlName="notes" 
+                        placeholder="Instructions particulières, informations importantes..." rows="4"></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Annuler</button>
+    <button mat-raised-button color="primary" 
+            [disabled]="remplacementForm.invalid || isLoading" 
+            (click)="onSave()">
+      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+      <span *ngIf="!isLoading">{{ isEditMode ? 'Modifier' : 'Créer' }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>

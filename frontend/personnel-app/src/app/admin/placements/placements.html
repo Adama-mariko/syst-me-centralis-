@@ -1,0 +1,212 @@
+<div class="placements-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon class="title-icon">assignment</mat-icon>
+          Gestion des Placements
+        </h1>
+        <p class="page-subtitle">{{ filteredPlacements.length }} placement(s) enregistré(s)</p>
+      </div>
+      <button mat-raised-button color="primary" class="create-btn" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Nouveau Placement
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-grid">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Rechercher</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" 
+                 placeholder="Collaborateur, entreprise, poste...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Statut</mat-label>
+          <mat-select [(ngModel)]="selectedStatus" (ngModelChange)="applyFilters()">
+            <mat-option value="">Tous les statuts</mat-option>
+            <mat-option value="en_attente">En attente</mat-option>
+            <mat-option value="en_cours">En cours</mat-option>
+            <mat-option value="termine">Terminé</mat-option>
+            <mat-option value="annule">Annulé</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Entreprise</mat-label>
+          <mat-select [(ngModel)]="selectedEntreprise" (ngModelChange)="applyFilters()">
+            <mat-option value="">Toutes les entreprises</mat-option>
+            <mat-option *ngFor="let entreprise of entreprises" [value]="entreprise.id">
+              {{ entreprise.nom }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Collaborateur</mat-label>
+          <mat-select [(ngModel)]="selectedCollaborateur" (ngModelChange)="applyFilters()">
+            <mat-option value="">Tous les collaborateurs</mat-option>
+            <mat-option *ngFor="let collaborateur of collaborateurs" [value]="collaborateur.id">
+              {{ collaborateur.prenom }} {{ collaborateur.nom }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-stroked-button class="clear-filters-btn" (click)="clearFilters()">
+          <mat-icon>clear</mat-icon>
+          Effacer les filtres
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tableau des placements -->
+  <mat-card class="table-card">
+    <mat-card-content>
+      <div class="table-container" *ngIf="!isLoading">
+        <table mat-table [dataSource]="filteredPlacements" class="placements-table" matSort>
+          
+          <!-- Colonne Collaborateur -->
+          <ng-container matColumnDef="collaborateur">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Collaborateur</th>
+            <td mat-cell *matCellDef="let placement">
+              <div class="collaborateur-cell">
+                <div class="collaborateur-avatar">
+                  <mat-icon>person</mat-icon>
+                </div>
+                <div class="collaborateur-info">
+                  <div class="collaborateur-name">{{ getCollaborateurName(placement.collaborateur_id) }}</div>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Entreprise -->
+          <ng-container matColumnDef="entreprise">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Entreprise</th>
+            <td mat-cell *matCellDef="let placement">
+              <div class="entreprise-cell">
+                <mat-icon class="entreprise-icon">business</mat-icon>
+                <span class="entreprise-name">{{ getEntrepriseName(placement.entreprise_id) }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Poste -->
+          <ng-container matColumnDef="poste">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Poste</th>
+            <td mat-cell *matCellDef="let placement">
+              <div class="poste-cell">
+                <mat-icon class="poste-icon">work</mat-icon>
+                <span class="poste-name">{{ placement.poste }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Date début -->
+          <ng-container matColumnDef="date_debut">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date début</th>
+            <td mat-cell *matCellDef="let placement">
+              <div class="date-cell">
+                <mat-icon class="date-icon">event</mat-icon>
+                <span>{{ placement.date_debut | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Date fin -->
+          <ng-container matColumnDef="date_fin">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date fin</th>
+            <td mat-cell *matCellDef="let placement">
+              <div class="date-cell">
+                <mat-icon class="date-icon">event_available</mat-icon>
+                <span>{{ placement.date_fin ? (placement.date_fin | date:'dd/MM/yyyy') : 'Indéterminée' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Statut -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Statut</th>
+            <td mat-cell *matCellDef="let placement">
+              <mat-chip-set>
+                <mat-chip [class]="getStatusClass(placement.statut)">
+                  <mat-icon matChipAvatar>
+                    {{ placement.statut === 'en_cours' ? 'play_circle' : 
+                       placement.statut === 'termine' ? 'check_circle' :
+                       placement.statut === 'annule' ? 'cancel' : 'schedule' }}
+                  </mat-icon>
+                  {{ getStatusLabel(placement.statut) }}
+                </mat-chip>
+              </mat-chip-set>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Salaire -->
+          <ng-container matColumnDef="salaire">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Salaire</th>
+            <td mat-cell *matCellDef="let placement">
+              <div class="salaire-cell">
+                <mat-icon class="salaire-icon">euro</mat-icon>
+                <span class="salaire-amount">{{ placement.salaire | currency:'EUR':'symbol':'1.0-0' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let placement">
+              <div class="actions-cell">
+                <button mat-icon-button [matMenuTriggerFor]="actionMenu" class="action-btn">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #actionMenu="matMenu">
+                  <button mat-menu-item (click)="viewPlacement(placement)">
+                    <mat-icon>visibility</mat-icon>
+                    <span>Voir détails</span>
+                  </button>
+                  <button mat-menu-item (click)="editPlacement(placement)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Modifier</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="deletePlacement(placement)" class="delete-action">
+                    <mat-icon>delete</mat-icon>
+                    <span>Supprimer</span>
+                  </button>
+                </mat-menu>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+        </table>
+
+        <!-- Message si aucun placement -->
+        <div class="no-data" *ngIf="filteredPlacements.length === 0">
+          <mat-icon class="no-data-icon">assignment</mat-icon>
+          <h3>Aucun placement trouvé</h3>
+          <p>Commencez par créer votre premier placement</p>
+          <button mat-raised-button color="primary" (click)="openCreateDialog()">
+            <mat-icon>add</mat-icon>
+            Créer un placement
+          </button>
+        </div>
+      </div>
+
+      <!-- Loader -->
+      <div class="loading-container" *ngIf="isLoading">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Chargement des placements...</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

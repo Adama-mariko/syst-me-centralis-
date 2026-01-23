@@ -1,0 +1,208 @@
+<div class="remplacements-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon class="title-icon">swap_horiz</mat-icon>
+          Gestion des Remplacements
+        </h1>
+        <p class="page-subtitle">{{ filteredRemplacements.length }} remplacement(s) enregistré(s)</p>
+      </div>
+      <button mat-raised-button color="primary" class="create-btn" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Nouveau Remplacement
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-grid">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Rechercher</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" 
+                 placeholder="Collaborateur, entreprise, motif...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Statut</mat-label>
+          <mat-select [(ngModel)]="selectedStatus" (ngModelChange)="applyFilters()">
+            <mat-option value="">Tous les statuts</mat-option>
+            <mat-option value="planifie">Planifié</mat-option>
+            <mat-option value="en_cours">En cours</mat-option>
+            <mat-option value="termine">Terminé</mat-option>
+            <mat-option value="annule">Annulé</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Entreprise</mat-label>
+          <mat-select [(ngModel)]="selectedEntreprise" (ngModelChange)="applyFilters()">
+            <mat-option value="">Toutes les entreprises</mat-option>
+            <mat-option *ngFor="let entreprise of entreprises" [value]="entreprise.id">
+              {{ entreprise.nom }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-stroked-button class="clear-filters-btn" (click)="clearFilters()">
+          <mat-icon>clear</mat-icon>
+          Effacer les filtres
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tableau des remplacements -->
+  <mat-card class="table-card">
+    <mat-card-content>
+      <div class="table-container" *ngIf="!isLoading">
+        <table mat-table [dataSource]="filteredRemplacements" class="remplacements-table" matSort>
+          
+          <!-- Colonne Remplaçant -->
+          <ng-container matColumnDef="collaborateur_remplacant">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Remplaçant</th>
+            <td mat-cell *matCellDef="let remplacement">
+              <div class="collaborateur-cell">
+                <div class="collaborateur-avatar remplacant">
+                  <mat-icon>person_add</mat-icon>
+                </div>
+                <div class="collaborateur-info">
+                  <div class="collaborateur-name">{{ getCollaborateurName(remplacement.collaborateur_remplacant_id) }}</div>
+                  <div class="collaborateur-role">Remplaçant</div>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Remplacé -->
+          <ng-container matColumnDef="collaborateur_remplace">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Remplacé</th>
+            <td mat-cell *matCellDef="let remplacement">
+              <div class="collaborateur-cell">
+                <div class="collaborateur-avatar remplace">
+                  <mat-icon>person_remove</mat-icon>
+                </div>
+                <div class="collaborateur-info">
+                  <div class="collaborateur-name">{{ getCollaborateurName(remplacement.collaborateur_remplace_id) }}</div>
+                  <div class="collaborateur-role">Remplacé</div>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Entreprise -->
+          <ng-container matColumnDef="entreprise">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Entreprise</th>
+            <td mat-cell *matCellDef="let remplacement">
+              <div class="entreprise-cell">
+                <mat-icon class="entreprise-icon">business</mat-icon>
+                <span class="entreprise-name">{{ getEntrepriseName(remplacement.entreprise_id) }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Motif -->
+          <ng-container matColumnDef="motif">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Motif</th>
+            <td mat-cell *matCellDef="let remplacement">
+              <div class="motif-cell">
+                <mat-icon class="motif-icon">{{ getMotifIcon(remplacement.motif) }}</mat-icon>
+                <span class="motif-text">{{ remplacement.motif }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Date début -->
+          <ng-container matColumnDef="date_debut">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date début</th>
+            <td mat-cell *matCellDef="let remplacement">
+              <div class="date-cell">
+                <mat-icon class="date-icon">event</mat-icon>
+                <span>{{ remplacement.date_debut | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Date fin -->
+          <ng-container matColumnDef="date_fin">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date fin</th>
+            <td mat-cell *matCellDef="let remplacement">
+              <div class="date-cell">
+                <mat-icon class="date-icon">event_available</mat-icon>
+                <span>{{ remplacement.date_fin | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Statut -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Statut</th>
+            <td mat-cell *matCellDef="let remplacement">
+              <mat-chip-set>
+                <mat-chip [class]="getStatusClass(remplacement.statut)">
+                  <mat-icon matChipAvatar>
+                    {{ remplacement.statut === 'planifie' ? 'schedule' : 
+                       remplacement.statut === 'en_cours' ? 'play_circle' :
+                       remplacement.statut === 'termine' ? 'check_circle' : 'cancel' }}
+                  </mat-icon>
+                  {{ getStatusLabel(remplacement.statut) }}
+                </mat-chip>
+              </mat-chip-set>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let remplacement">
+              <div class="actions-cell">
+                <button mat-icon-button [matMenuTriggerFor]="actionMenu" class="action-btn">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #actionMenu="matMenu">
+                  <button mat-menu-item (click)="viewRemplacement(remplacement)">
+                    <mat-icon>visibility</mat-icon>
+                    <span>Voir détails</span>
+                  </button>
+                  <button mat-menu-item (click)="editRemplacement(remplacement)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Modifier</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="deleteRemplacement(remplacement)" class="delete-action">
+                    <mat-icon>delete</mat-icon>
+                    <span>Supprimer</span>
+                  </button>
+                </mat-menu>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+        </table>
+
+        <!-- Message si aucun remplacement -->
+        <div class="no-data" *ngIf="filteredRemplacements.length === 0">
+          <mat-icon class="no-data-icon">swap_horiz</mat-icon>
+          <h3>Aucun remplacement trouvé</h3>
+          <p>Commencez par créer votre premier remplacement</p>
+          <button mat-raised-button color="primary" (click)="openCreateDialog()">
+            <mat-icon>add</mat-icon>
+            Créer un remplacement
+          </button>
+        </div>
+      </div>
+
+      <!-- Loader -->
+      <div class="loading-container" *ngIf="isLoading">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Chargement des remplacements...</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

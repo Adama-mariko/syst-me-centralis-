@@ -21,8 +21,16 @@ export class CollaborateurService {
     return this.apiService.post<{collaborateur: Collaborateur, message: string}>('/collaborateurs', collaborateur);
   }
 
+  createCollaborateurWithPhoto(formData: FormData): Observable<{collaborateur: Collaborateur, message: string}> {
+    return this.apiService.postFormData<{collaborateur: Collaborateur, message: string}>('/collaborateurs', formData);
+  }
+
   updateCollaborateur(id: number, collaborateur: Partial<Collaborateur>): Observable<{collaborateur: Collaborateur, message: string}> {
     return this.apiService.put<{collaborateur: Collaborateur, message: string}>(`/collaborateurs/${id}`, collaborateur);
+  }
+
+  updateCollaborateurWithPhoto(id: number, formData: FormData): Observable<{collaborateur: Collaborateur, message: string}> {
+    return this.apiService.putFormData<{collaborateur: Collaborateur, message: string}>(`/collaborateurs/${id}`, formData);
   }
 
   deleteCollaborateur(id: number): Observable<{message: string}> {

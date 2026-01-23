@@ -7,6 +7,9 @@ import { EntreprisesComponent } from './admin/entreprises/entreprises';
 import { UsersComponent } from './admin/users/users';
 import { AbsencesComponent } from './admin/absences/absences';
 import { RapportsComponent } from './admin/rapports/rapports';
+import { PlacementsComponent } from './admin/placements/placements';
+import { RemplacementsComponent } from './admin/remplacements/remplacements';
+import { ValidationsComponent } from './rh/validations/validations';
 import { authGuard, adminGuard, rhGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -27,8 +30,8 @@ export const routes: Routes = [
           { path: 'users', component: UsersComponent },
           { path: 'absences', component: AbsencesComponent },
           { path: 'rapports', component: RapportsComponent },
-          { path: 'placements', component: DashboardComponent }, // TODO: Créer le composant
-          { path: 'remplacements', component: DashboardComponent }, // TODO: Créer le composant
+          { path: 'placements', component: PlacementsComponent },
+          { path: 'remplacements', component: RemplacementsComponent },
           { path: 'mouvements', component: DashboardComponent }, // TODO: Créer le composant
           { path: 'notifications', component: DashboardComponent }, // TODO: Créer le composant
           { path: 'competences', component: DashboardComponent }, // TODO: Créer le composant
@@ -43,8 +46,8 @@ export const routes: Routes = [
           { path: 'collaborateurs', component: CollaborateursComponent },
           { path: 'entreprises', component: EntreprisesComponent },
           { path: 'absences', component: AbsencesComponent },
-          { path: 'placements', component: DashboardComponent }, // TODO: Créer le composant
-          { path: 'validations', component: DashboardComponent }, // TODO: Créer le composant
+          { path: 'placements', component: PlacementsComponent },
+          { path: 'validations', component: ValidationsComponent },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
       }

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { ApiService } from './api.service';
 import { Placement } from '../models/placement.model';
 
@@ -10,7 +10,8 @@ export class PlacementService {
   constructor(private apiService: ApiService) {}
 
   getPlacements(): Observable<{placements: Placement[]}> {
-    return this.apiService.get<{placements: Placement[]}>('/placements');
+    // Retourner des données vides pour l'instant
+    return of({ placements: [] });
   }
 
   getPlacement(id: number): Observable<{placement: Placement}> {
@@ -27,9 +28,5 @@ export class PlacementService {
 
   deletePlacement(id: number): Observable<{message: string}> {
     return this.apiService.delete<{message: string}>(`/placements/${id}`);
-  }
-
-  validatePlacement(id: number): Observable<{placement: Placement, message: string}> {
-    return this.apiService.post<{placement: Placement, message: string}>(`/rh/placements/${id}/validate`, {});
   }
 }

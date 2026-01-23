@@ -585,3 +585,20 @@ body[lang="es"] {
     }
   }
 }
+
+/* ===== CLASSE POUR GRANDS DIALOGS ===== */
+.large-dialog .mat-mdc-dialog-container {
+  --mdc-dialog-container-max-width: 95vw !important;
+  --mdc-dialog-container-max-height: 90vh !important;
+  max-width: 95vw !important;
+  max-height: 90vh !important;
+  width: 95vw !important;
+  height: 90vh !important;
+}
+
+.large-dialog .cdk-overlay-pane {
+  max-width: 95vw !important;
+  max-height: 90vh !important;
+  width: 95vw !important;
+  height: 90vh !important;
+}

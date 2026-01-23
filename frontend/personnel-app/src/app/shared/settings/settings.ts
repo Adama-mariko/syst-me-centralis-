@@ -11,7 +11,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SettingsService, AppSettings } from '../../core/services/settings.service';
 import { TranslationService } from '../../core/services/translation.service';
-import { TranslatePipe } from '../pipes/translate.pipe';
 
 @Component({
   selector: 'app-settings',
@@ -25,8 +24,7 @@ import { TranslatePipe } from '../pipes/translate.pipe';
     MatButtonModule,
     MatIconModule,
     MatSlideToggleModule,
-    MatProgressSpinnerModule,
-    TranslatePipe
+    MatProgressSpinnerModule
   ],
   templateUrl: './settings.html',
   styleUrl: './settings.scss'

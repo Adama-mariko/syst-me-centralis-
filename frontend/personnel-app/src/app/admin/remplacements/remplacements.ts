@@ -15,17 +15,21 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+import { RemplacementService } from '../../core/services/remplacement.service';
 import { CollaborateurService } from '../../core/services/collaborateur.service';
 import { EntrepriseService } from '../../core/services/entreprise.service';
+import { Remplacement } from '../../core/models/remplacement.model';
 import { Collaborateur } from '../../core/models/collaborateur.model';
 import { Entreprise } from '../../core/models/entreprise.model';
-import { CollaborateurDialogComponent } from './collaborateur-dialog/collaborateur-dialog';
+import { RemplacementDialogComponent } from './remplacement-dialog/remplacement-dialog';
 
 @Component({
-  selector: 'app-collaborateurs',
+  selector: 'app-remplacements',
   standalone: true,
   imports: [
     CommonModule,
@@ -43,14 +47,17 @@ import { CollaborateurDialogComponent } from './collaborateur-dialog/collaborate
     MatSortModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatDividerModule
+    MatDividerModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
-  templateUrl: './collaborateurs.html',
-  styleUrl: './collaborateurs.scss'
+  templateUrl: './remplacements.html',
+  styleUrl: './remplacements.scss'
 })
-export class CollaborateursComponent implements OnInit {
+export class RemplacementsComponent implements OnInit {
+  remplacements: Remplacement[] = [];
+  filteredRemplacements: Remplacement[] = [];
   collaborateurs: Collaborateur[] = [];
-  filteredCollaborateurs: Collaborateur[] = [];
   entreprises: Entreprise[] = [];
   isLoading = false;
 
@@ -58,20 +65,22 @@ export class CollaborateursComponent implements OnInit {
   searchTerm = '';
   selectedStatus = '';
   selectedEntreprise = '';
+  selectedType = '';
 
   // Configuration du tableau
   displayedColumns: string[] = [
-    'avatar',
-    'numero_employe', 
-    'nom_complet', 
-    'poste', 
-    'entreprise', 
-    'statut', 
-    'validation', 
+    'collaborateur_remplacant',
+    'collaborateur_remplace', 
+    'entreprise',
+    'motif',
+    'date_debut',
+    'date_fin',
+    'statut',
     'actions'
   ];
 
   constructor(
+    private remplacementService: RemplacementService,
     private collaborateurService: CollaborateurService,
     private entrepriseService: EntrepriseService,
     private dialog: MatDialog,
@@ -85,11 +94,13 @@ export class CollaborateursComponent implements OnInit {
   loadData(): void {
     this.isLoading = true;
     
-    // Charger les collaborateurs et entreprises en parallèle
+    // Charger toutes les données en parallèle
     Promise.all([
+      this.remplacementService.getRemplacements().toPromise(),
       this.collaborateurService.getCollaborateurs().toPromise(),
       this.entrepriseService.getEntreprises().toPromise()
-    ]).then(([collaborateursResponse, entreprisesResponse]) => {
+    ]).then(([remplacementsResponse, collaborateursResponse, entreprisesResponse]) => {
+      this.remplacements = remplacementsResponse?.remplacements || [];
       this.collaborateurs = collaborateursResponse?.collaborateurs || [];
       this.entreprises = entreprisesResponse?.entreprises || [];
       this.applyFilters();
@@ -105,60 +116,87 @@ export class CollaborateursComponent implements OnInit {
   }
 
   applyFilters(): void {
-    let filtered = [...this.collaborateurs];
+    let filtered = [...this.remplacements];
 
     // Filtre par terme de recherche
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(collab => 
-        collab.nom.toLowerCase().includes(term) ||
-        collab.prenom.toLowerCase().includes(term) ||
-        collab.email.toLowerCase().includes(term) ||
-        collab.poste.toLowerCase().includes(term) ||
-        collab.numero_employe.toLowerCase().includes(term)
-      );
+      filtered = filtered.filter(remplacement => {
+        const remplacant = this.getCollaborateurName(remplacement.collaborateur_remplacant_id);
+        const remplace = this.getCollaborateurName(remplacement.collaborateur_remplace_id);
+        const entreprise = this.getEntrepriseName(remplacement.entreprise_id);
+        return remplacant.toLowerCase().includes(term) ||
+               remplace.toLowerCase().includes(term) ||
+               entreprise.toLowerCase().includes(term) ||
+               remplacement.motif.toLowerCase().includes(term);
+      });
     }
 
     // Filtre par statut
     if (this.selectedStatus) {
-      filtered = filtered.filter(collab => collab.statut === this.selectedStatus);
+      filtered = filtered.filter(remplacement => remplacement.statut === this.selectedStatus);
     }
 
     // Filtre par entreprise
     if (this.selectedEntreprise) {
-      filtered = filtered.filter(collab => 
-        collab.entreprise_actuelle_id === Number(this.selectedEntreprise)
+      filtered = filtered.filter(remplacement => 
+        remplacement.entreprise_id === Number(this.selectedEntreprise)
       );
     }
 
-    this.filteredCollaborateurs = filtered;
+    this.filteredRemplacements = filtered;
   }
 
   clearFilters(): void {
     this.searchTerm = '';
     this.selectedStatus = '';
     this.selectedEntreprise = '';
+    this.selectedType = '';
     this.applyFilters();
   }
 
-  getEntrepriseName(entrepriseId?: number): string {
-    if (!entrepriseId) return '';
+  getCollaborateurName(collaborateurId: number): string {
+    const collaborateur = this.collaborateurs.find(c => c.id === collaborateurId);
+    return collaborateur ? `${collaborateur.prenom} ${collaborateur.nom}` : '';
+  }
+
+  getEntrepriseName(entrepriseId: number): string {
     const entreprise = this.entreprises.find(e => e.id === entrepriseId);
     return entreprise?.nom || '';
   }
 
   getStatusLabel(status: string): string {
     const labels: { [key: string]: string } = {
-      'actif': 'Actif',
-      'inactif': 'Inactif',
-      'en_conge': 'En congé',
-      'arret_maladie': 'Arrêt maladie'
+      'planifie': 'Planifié',
+      'en_cours': 'En cours',
+      'termine': 'Terminé',
+      'annule': 'Annulé'
     };
     return labels[status] || status;
   }
 
+  getStatusClass(status: string): string {
+    const classes: { [key: string]: string } = {
+      'planifie': 'status-planned',
+      'en_cours': 'status-active',
+      'termine': 'status-completed',
+      'annule': 'status-cancelled'
+    };
+    return classes[status] || '';
+  }
+
+  getMotifIcon(motif: string): string {
+    const icons: { [key: string]: string } = {
+      'conge': 'beach_access',
+      'maladie': 'local_hospital',
+      'formation': 'school',
+      'autre': 'help_outline'
+    };
+    return icons[motif] || 'swap_horiz';
+  }
+
   openCreateDialog(): void {
-    const dialogRef = this.dialog.open(CollaborateurDialogComponent, {
+    const dialogRef = this.dialog.open(RemplacementDialogComponent, {
       width: '95vw',
       maxWidth: '95vw',
       height: '90vh',
@@ -169,41 +207,39 @@ export class CollaborateursComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadData(); // Recharger la liste
+        this.loadData();
       }
     });
   }
 
-  viewCollaborateur(collaborateur: Collaborateur): void {
-    // TODO: Ouvrir la vue détaillée
-    console.log('Voir collaborateur:', collaborateur);
-  }
-
-  editCollaborateur(collaborateur: Collaborateur): void {
-    const dialogRef = this.dialog.open(CollaborateurDialogComponent, {
+  editRemplacement(remplacement: Remplacement): void {
+    const dialogRef = this.dialog.open(RemplacementDialogComponent, {
       width: '95vw',
       maxWidth: '95vw',
       height: '90vh',
       maxHeight: '90vh',
       panelClass: 'large-dialog',
-      data: { collaborateur, isEditMode: true }
+      data: { remplacement, isEditMode: true }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadData(); // Recharger la liste
+        this.loadData();
       }
     });
   }
 
-  createPlacement(collaborateur: Collaborateur): void {
-    // TODO: Ouvrir le dialog de création de placement
-    console.log('Créer placement pour:', collaborateur);
+  viewRemplacement(remplacement: Remplacement): void {
+    // TODO: Ouvrir la vue détaillée
+    console.log('Voir remplacement:', remplacement);
   }
 
-  deleteCollaborateur(collaborateur: Collaborateur): void {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer ${collaborateur.prenom} ${collaborateur.nom} ?`)) {
-      this.collaborateurService.deleteCollaborateur(collaborateur.id).subscribe({
+  deleteRemplacement(remplacement: Remplacement): void {
+    const remplacantName = this.getCollaborateurName(remplacement.collaborateur_remplacant_id);
+    const remplaceName = this.getCollaborateurName(remplacement.collaborateur_remplace_id);
+    
+    if (confirm(`Êtes-vous sûr de vouloir supprimer le remplacement de ${remplaceName} par ${remplacantName} ?`)) {
+      this.remplacementService.deleteRemplacement(remplacement.id).subscribe({
         next: (response) => {
           this.snackBar.open(response.message, 'Fermer', {
             duration: 3000,
@@ -219,15 +255,5 @@ export class CollaborateursComponent implements OnInit {
         }
       });
     }
-  }
-
-  getImageUrl(photoUrl: string | undefined): string {
-    if (!photoUrl) return '';
-    // Si l'URL commence déjà par http, la retourner telle quelle
-    if (photoUrl.startsWith('http')) {
-      return photoUrl;
-    }
-    // Sinon, construire l'URL complète avec le backend
-    return `http://localhost:5000${photoUrl}`;
   }
 }

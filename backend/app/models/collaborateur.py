@@ -28,6 +28,7 @@ class Collaborateur(db.Model):
     salaire = db.Column(DECIMAL(10, 2))
     statut = db.Column(db.Enum(StatutCollaborateur), default=StatutCollaborateur.ACTIF)
     entreprise_actuelle_id = db.Column(db.Integer, db.ForeignKey('entreprises.id'))
+    photo_url = db.Column(db.String(255))  # URL de la photo de profil
     is_validated_by_rh = db.Column(db.Boolean, default=False)
     validated_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     validation_date = db.Column(db.DateTime)
@@ -62,6 +63,7 @@ class Collaborateur(db.Model):
             'salaire': float(self.salaire) if self.salaire else None,
             'statut': self.statut.value,
             'entreprise_actuelle_id': self.entreprise_actuelle_id,
+            'photo_url': self.photo_url,
             'is_validated_by_rh': self.is_validated_by_rh,
             'validation_date': self.validation_date.isoformat() if self.validation_date else None,
             'created_at': self.created_at.isoformat(),
