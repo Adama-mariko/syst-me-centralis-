@@ -39,12 +39,12 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="filter-field">
-          <mat-label>Entreprise</mat-label>
-          <mat-select [(ngModel)]="selectedEntreprise" (ngModelChange)="applyFilters()">
-            <mat-option value="">Toutes les entreprises</mat-option>
-            <mat-option *ngFor="let entreprise of entreprises" [value]="entreprise.id">
-              {{ entreprise.nom }}
-            </mat-option>
+          <mat-label>Type</mat-label>
+          <mat-select [(ngModel)]="selectedType" (ngModelChange)="applyFilters()">
+            <mat-option value="">Tous les types</mat-option>
+            <mat-option value="temporaire">Temporaire</mat-option>
+            <mat-option value="permanent">Permanent</mat-option>
+            <mat-option value="urgence">Urgence</mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -63,7 +63,7 @@
         <table mat-table [dataSource]="filteredRemplacements" class="remplacements-table" matSort>
           
           <!-- Colonne Remplaçant -->
-          <ng-container matColumnDef="collaborateur_remplacant">
+          <ng-container matColumnDef="remplacant">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Remplaçant</th>
             <td mat-cell *matCellDef="let remplacement">
               <div class="collaborateur-cell">
@@ -71,7 +71,7 @@
                   <mat-icon>person_add</mat-icon>
                 </div>
                 <div class="collaborateur-info">
-                  <div class="collaborateur-name">{{ getCollaborateurName(remplacement.collaborateur_remplacant_id) }}</div>
+                  <div class="collaborateur-name">{{ getCollaborateurName(remplacement.remplacant_id) }}</div>
                   <div class="collaborateur-role">Remplaçant</div>
                 </div>
               </div>
@@ -79,7 +79,7 @@
           </ng-container>
 
           <!-- Colonne Remplacé -->
-          <ng-container matColumnDef="collaborateur_remplace">
+          <ng-container matColumnDef="remplace">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Remplacé</th>
             <td mat-cell *matCellDef="let remplacement">
               <div class="collaborateur-cell">
@@ -87,20 +87,20 @@
                   <mat-icon>person_remove</mat-icon>
                 </div>
                 <div class="collaborateur-info">
-                  <div class="collaborateur-name">{{ getCollaborateurName(remplacement.collaborateur_remplace_id) }}</div>
+                  <div class="collaborateur-name">{{ getCollaborateurName(remplacement.remplace_id) }}</div>
                   <div class="collaborateur-role">Remplacé</div>
                 </div>
               </div>
             </td>
           </ng-container>
 
-          <!-- Colonne Entreprise -->
-          <ng-container matColumnDef="entreprise">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Entreprise</th>
+          <!-- Colonne Type de remplacement -->
+          <ng-container matColumnDef="type_remplacement">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Type</th>
             <td mat-cell *matCellDef="let remplacement">
-              <div class="entreprise-cell">
-                <mat-icon class="entreprise-icon">business</mat-icon>
-                <span class="entreprise-name">{{ getEntrepriseName(remplacement.entreprise_id) }}</span>
+              <div class="type-cell">
+                <mat-icon class="type-icon">{{ getTypeIcon(remplacement.type_remplacement) }}</mat-icon>
+                <span class="type-text">{{ getTypeLabel(remplacement.type_remplacement) }}</span>
               </div>
             </td>
           </ng-container>
@@ -110,8 +110,8 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Motif</th>
             <td mat-cell *matCellDef="let remplacement">
               <div class="motif-cell">
-                <mat-icon class="motif-icon">{{ getMotifIcon(remplacement.motif) }}</mat-icon>
-                <span class="motif-text">{{ remplacement.motif }}</span>
+                <mat-icon class="motif-icon">{{ remplacement.motif ? getMotifIcon(remplacement.motif) : 'help_outline' }}</mat-icon>
+                <span class="motif-text">{{ remplacement.motif ? getMotifLabel(remplacement.motif) : 'Non spécifié' }}</span>
               </div>
             </td>
           </ng-container>

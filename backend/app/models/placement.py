@@ -23,6 +23,7 @@ class Placement(db.Model):
     salaire_propose = db.Column(DECIMAL(10, 2))
     statut = db.Column(db.Enum(StatutPlacement), default=StatutPlacement.EN_ATTENTE)
     commentaires = db.Column(db.Text)
+    document_url = db.Column(db.String(255))  # URL du document (contrat, lettre de mission, etc.)
     created_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     validated_by_rh_user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     validation_rh_date = db.Column(db.DateTime)
@@ -45,6 +46,7 @@ class Placement(db.Model):
             'salaire_propose': float(self.salaire_propose) if self.salaire_propose else None,
             'statut': self.statut.value,
             'commentaires': self.commentaires,
+            'document_url': self.document_url,
             'validation_rh_date': self.validation_rh_date.isoformat() if self.validation_rh_date else None,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()

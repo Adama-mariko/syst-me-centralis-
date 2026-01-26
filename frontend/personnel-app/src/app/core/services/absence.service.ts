@@ -84,6 +84,12 @@ export class AbsenceService {
     });
   }
 
+  updateAbsence(id: number, absence: Partial<Absence>): Observable<{ message: string; absence: Absence }> {
+    return this.http.put<{ message: string; absence: Absence }>(`${this.API_URL}/absences/${id}`, absence, {
+      headers: this.getHeaders()
+    });
+  }
+
   approuverAbsence(id: number, commentaires?: string): Observable<{ message: string; absence: Absence }> {
     return this.http.post<{ message: string; absence: Absence }>(`${this.API_URL}/absences/${id}/approuver`, { commentaires }, {
       headers: this.getHeaders()
@@ -92,6 +98,12 @@ export class AbsenceService {
 
   refuserAbsence(id: number, commentaires?: string): Observable<{ message: string; absence: Absence }> {
     return this.http.post<{ message: string; absence: Absence }>(`${this.API_URL}/absences/${id}/refuser`, { commentaires }, {
+      headers: this.getHeaders()
+    });
+  }
+
+  deleteAbsence(id: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.API_URL}/absences/${id}`, {
       headers: this.getHeaders()
     });
   }

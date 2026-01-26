@@ -66,17 +66,19 @@
         <div class="filter-row">
           <mat-form-field appearance="outline" class="filter-field">
             <mat-label>Date début</mat-label>
-            <input matInput [matDatepicker]="pickerDebut" formControlName="date_debut">
-            <mat-datepicker-toggle matSuffix [for]="pickerDebut"></mat-datepicker-toggle>
-            <mat-datepicker #pickerDebut></mat-datepicker>
+            <input matInput [matDatepicker]="pickerDebut" formControlName="date_debut" placeholder="jj/mm/aaaa">
+            <mat-datepicker-toggle matSuffix [for]="pickerDebut" 
+                                   (click)="$event.stopPropagation(); pickerDebut.open()"></mat-datepicker-toggle>
+            <mat-datepicker #pickerDebut touchUi="false"></mat-datepicker>
             <mat-icon matPrefix>date_range</mat-icon>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="filter-field">
             <mat-label>Date fin</mat-label>
-            <input matInput [matDatepicker]="pickerFin" formControlName="date_fin">
-            <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
-            <mat-datepicker #pickerFin></mat-datepicker>
+            <input matInput [matDatepicker]="pickerFin" formControlName="date_fin" placeholder="jj/mm/aaaa">
+            <mat-datepicker-toggle matSuffix [for]="pickerFin" 
+                                   (click)="$event.stopPropagation(); pickerFin.open()"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFin touchUi="false"></mat-datepicker>
             <mat-icon matPrefix>date_range</mat-icon>
           </mat-form-field>
 
@@ -214,6 +216,14 @@
                 </button>
 
                 <button mat-icon-button 
+                        matTooltip="Modifier"
+                        (click)="openAbsenceDialog(absence)"
+                        *ngIf="canEdit(absence)"
+                        class="action-btn edit-btn">
+                  <mat-icon>edit</mat-icon>
+                </button>
+
+                <button mat-icon-button 
                         matTooltip="Approuver"
                         (click)="approuverAbsence(absence)"
                         *ngIf="canApprove(absence)"
@@ -227,6 +237,14 @@
                         *ngIf="canReject(absence)"
                         class="action-btn reject-btn">
                   <mat-icon>cancel</mat-icon>
+                </button>
+
+                <button mat-icon-button 
+                        matTooltip="Supprimer"
+                        (click)="supprimerAbsence(absence)"
+                        *ngIf="canDelete(absence)"
+                        class="action-btn delete-btn">
+                  <mat-icon>delete</mat-icon>
                 </button>
               </div>
             </td>

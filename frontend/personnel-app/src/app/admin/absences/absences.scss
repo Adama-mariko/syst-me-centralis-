@@ -281,6 +281,14 @@
               }
             }
 
+            &.edit-btn {
+              color: #f59e0b;
+
+              &:hover {
+                background-color: rgba(245, 158, 11, 0.1);
+              }
+            }
+
             &.approve-btn {
               color: #10b981;
 
@@ -294,6 +302,14 @@
 
               &:hover {
                 background-color: rgba(239, 68, 68, 0.1);
+              }
+            }
+
+            &.delete-btn {
+              color: #dc2626;
+
+              &:hover {
+                background-color: rgba(220, 38, 38, 0.1);
               }
             }
 

@@ -16,7 +16,7 @@
             
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Collaborateur remplaçant *</mat-label>
-              <mat-select formControlName="collaborateur_remplacant_id">
+              <mat-select formControlName="remplacant_id">
                 <mat-option *ngFor="let collaborateur of collaborateurs" [value]="collaborateur.id">
                   <div class="collaborateur-option">
                     <mat-icon class="option-icon remplacant">person_add</mat-icon>
@@ -24,14 +24,14 @@
                   </div>
                 </mat-option>
               </mat-select>
-              <mat-error *ngIf="remplacementForm.get('collaborateur_remplacant_id')?.hasError('required')">
+              <mat-error *ngIf="remplacementForm.get('remplacant_id')?.hasError('required')">
                 Le collaborateur remplaçant est requis
               </mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Collaborateur remplacé *</mat-label>
-              <mat-select formControlName="collaborateur_remplace_id">
+              <mat-select formControlName="remplace_id">
                 <mat-option *ngFor="let collaborateur of collaborateurs" [value]="collaborateur.id">
                   <div class="collaborateur-option">
                     <mat-icon class="option-icon remplace">person_remove</mat-icon>
@@ -39,20 +39,8 @@
                   </div>
                 </mat-option>
               </mat-select>
-              <mat-error *ngIf="remplacementForm.get('collaborateur_remplace_id')?.hasError('required')">
+              <mat-error *ngIf="remplacementForm.get('remplace_id')?.hasError('required')">
                 Le collaborateur remplacé est requis
-              </mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Entreprise *</mat-label>
-              <mat-select formControlName="entreprise_id">
-                <mat-option *ngFor="let entreprise of entreprises" [value]="entreprise.id">
-                  {{ entreprise.nom }} - {{ entreprise.ville }}
-                </mat-option>
-              </mat-select>
-              <mat-error *ngIf="remplacementForm.get('entreprise_id')?.hasError('required')">
-                L'entreprise est requise
               </mat-error>
             </mat-form-field>
           </div>
@@ -64,9 +52,10 @@
             <div class="form-row">
               <mat-form-field appearance="outline">
                 <mat-label>Date de début *</mat-label>
-                <input matInput [matDatepicker]="startPicker" formControlName="date_debut">
-                <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
-                <mat-datepicker #startPicker></mat-datepicker>
+                <input matInput [matDatepicker]="startPicker" formControlName="date_debut" placeholder="jj/mm/aaaa">
+                <mat-datepicker-toggle matIconSuffix [for]="startPicker" 
+                                       (click)="$event.stopPropagation(); startPicker.open()"></mat-datepicker-toggle>
+                <mat-datepicker #startPicker touchUi="false"></mat-datepicker>
                 <mat-error *ngIf="remplacementForm.get('date_debut')?.hasError('required')">
                   La date de début est requise
                 </mat-error>
@@ -74,9 +63,10 @@
 
               <mat-form-field appearance="outline">
                 <mat-label>Date de fin *</mat-label>
-                <input matInput [matDatepicker]="endPicker" formControlName="date_fin">
-                <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
-                <mat-datepicker #endPicker></mat-datepicker>
+                <input matInput [matDatepicker]="endPicker" formControlName="date_fin" placeholder="jj/mm/aaaa">
+                <mat-datepicker-toggle matIconSuffix [for]="endPicker" 
+                                       (click)="$event.stopPropagation(); endPicker.open()"></mat-datepicker-toggle>
+                <mat-datepicker #endPicker touchUi="false"></mat-datepicker>
                 <mat-error *ngIf="remplacementForm.get('date_fin')?.hasError('required')">
                   La date de fin est requise
                 </mat-error>
@@ -91,6 +81,33 @@
           <div class="form-section">
             <h3>Détails du remplacement</h3>
             
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Type de remplacement *</mat-label>
+              <mat-select formControlName="type_remplacement">
+                <mat-option value="temporaire">
+                  <div class="motif-option">
+                    <mat-icon class="motif-icon">schedule</mat-icon>
+                    <span>Temporaire</span>
+                  </div>
+                </mat-option>
+                <mat-option value="permanent">
+                  <div class="motif-option">
+                    <mat-icon class="motif-icon">person</mat-icon>
+                    <span>Permanent</span>
+                  </div>
+                </mat-option>
+                <mat-option value="urgence">
+                  <div class="motif-option">
+                    <mat-icon class="motif-icon">warning</mat-icon>
+                    <span>Urgence</span>
+                  </div>
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="remplacementForm.get('type_remplacement')?.hasError('required')">
+                Le type de remplacement est requis
+              </mat-error>
+            </mat-form-field>
+
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Motif du remplacement *</mat-label>
               <mat-select formControlName="motif">
@@ -131,38 +148,8 @@
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Statut</mat-label>
-              <mat-select formControlName="statut">
-                <mat-option value="planifie">
-                  <div class="status-option planned">
-                    <mat-icon>schedule</mat-icon>
-                    <span>Planifié</span>
-                  </div>
-                </mat-option>
-                <mat-option value="en_cours">
-                  <div class="status-option active">
-                    <mat-icon>play_circle</mat-icon>
-                    <span>En cours</span>
-                  </div>
-                </mat-option>
-                <mat-option value="termine">
-                  <div class="status-option completed">
-                    <mat-icon>check_circle</mat-icon>
-                    <span>Terminé</span>
-                  </div>
-                </mat-option>
-                <mat-option value="annule">
-                  <div class="status-option cancelled">
-                    <mat-icon>cancel</mat-icon>
-                    <span>Annulé</span>
-                  </div>
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Notes complémentaires</mat-label>
-              <textarea matInput formControlName="notes" 
+              <mat-label>Commentaires</mat-label>
+              <textarea matInput formControlName="commentaires" 
                         placeholder="Instructions particulières, informations importantes..." rows="4"></textarea>
             </mat-form-field>
           </div>

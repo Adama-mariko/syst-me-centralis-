@@ -159,11 +159,10 @@ export class CollaborateursComponent implements OnInit {
 
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(CollaborateurDialogComponent, {
-      width: '95vw',
-      maxWidth: '95vw',
-      height: '90vh',
+      width: '80%',
+      maxWidth: '900px',
+      height: 'auto',
       maxHeight: '90vh',
-      panelClass: 'large-dialog',
       data: { isEditMode: false }
     });
 
@@ -181,11 +180,10 @@ export class CollaborateursComponent implements OnInit {
 
   editCollaborateur(collaborateur: Collaborateur): void {
     const dialogRef = this.dialog.open(CollaborateurDialogComponent, {
-      width: '95vw',
-      maxWidth: '95vw',
-      height: '90vh',
+      width: '80%',
+      maxWidth: '900px',
+      height: 'auto',
       maxHeight: '90vh',
-      panelClass: 'large-dialog',
       data: { collaborateur, isEditMode: true }
     });
 

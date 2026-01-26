@@ -32,6 +32,7 @@
           <mat-select [(ngModel)]="selectedStatus" (ngModelChange)="applyFilters()">
             <mat-option value="">Tous les statuts</mat-option>
             <mat-option value="en_attente">En attente</mat-option>
+            <mat-option value="confirme">Confirmé</mat-option>
             <mat-option value="en_cours">En cours</mat-option>
             <mat-option value="termine">Terminé</mat-option>
             <mat-option value="annule">Annulé</mat-option>
@@ -78,7 +79,11 @@
             <td mat-cell *matCellDef="let placement">
               <div class="collaborateur-cell">
                 <div class="collaborateur-avatar">
-                  <mat-icon>person</mat-icon>
+                  <img *ngIf="placement.document_url && isImage(placement.document_url)" 
+                       [src]="'http://localhost:5000' + placement.document_url" 
+                       alt="Photo"
+                       class="avatar-image">
+                  <mat-icon *ngIf="!placement.document_url || !isImage(placement.document_url)">person</mat-icon>
                 </div>
                 <div class="collaborateur-info">
                   <div class="collaborateur-name">{{ getCollaborateurName(placement.collaborateur_id) }}</div>
@@ -104,7 +109,7 @@
             <td mat-cell *matCellDef="let placement">
               <div class="poste-cell">
                 <mat-icon class="poste-icon">work</mat-icon>
-                <span class="poste-name">{{ placement.poste }}</span>
+                <span class="poste-name">{{ placement.poste_demande }}</span>
               </div>
             </td>
           </ng-container>
@@ -153,8 +158,8 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Salaire</th>
             <td mat-cell *matCellDef="let placement">
               <div class="salaire-cell">
-                <mat-icon class="salaire-icon">euro</mat-icon>
-                <span class="salaire-amount">{{ placement.salaire | currency:'EUR':'symbol':'1.0-0' }}</span>
+                <mat-icon class="salaire-icon">payments</mat-icon>
+                <span class="salaire-amount">{{ placement.salaire_propose | number:'1.0-0' }} FCFA</span>
               </div>
             </td>
           </ng-container>

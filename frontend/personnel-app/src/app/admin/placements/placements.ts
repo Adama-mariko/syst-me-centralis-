@@ -126,7 +126,7 @@ export class PlacementsComponent implements OnInit {
         const entreprise = this.getEntrepriseName(placement.entreprise_id);
         return collaborateur.toLowerCase().includes(term) ||
                entreprise.toLowerCase().includes(term) ||
-               placement.poste.toLowerCase().includes(term);
+               placement.poste_demande.toLowerCase().includes(term);
       });
     }
 
@@ -175,7 +175,8 @@ export class PlacementsComponent implements OnInit {
       'en_cours': 'En cours',
       'termine': 'Terminé',
       'annule': 'Annulé',
-      'en_attente': 'En attente'
+      'en_attente': 'En attente',
+      'confirme': 'Confirmé'
     };
     return labels[status] || status;
   }
@@ -185,18 +186,18 @@ export class PlacementsComponent implements OnInit {
       'en_cours': 'status-active',
       'termine': 'status-completed',
       'annule': 'status-cancelled',
-      'en_attente': 'status-pending'
+      'en_attente': 'status-pending',
+      'confirme': 'status-confirmed'
     };
     return classes[status] || '';
   }
 
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(PlacementDialogComponent, {
-      width: '95vw',
-      maxWidth: '95vw',
-      height: '90vh',
+      width: '80%',
+      maxWidth: '900px',
+      height: 'auto',
       maxHeight: '90vh',
-      panelClass: 'large-dialog',
       data: { isEditMode: false }
     });
 
@@ -209,11 +210,10 @@ export class PlacementsComponent implements OnInit {
 
   editPlacement(placement: Placement): void {
     const dialogRef = this.dialog.open(PlacementDialogComponent, {
-      width: '95vw',
-      maxWidth: '95vw',
-      height: '90vh',
+      width: '80%',
+      maxWidth: '900px',
+      height: 'auto',
       maxHeight: '90vh',
-      panelClass: 'large-dialog',
       data: { placement, isEditMode: true }
     });
 
@@ -227,6 +227,12 @@ export class PlacementsComponent implements OnInit {
   viewPlacement(placement: Placement): void {
     // TODO: Ouvrir la vue détaillée
     console.log('Voir placement:', placement);
+  }
+
+  viewDocument(placement: Placement): void {
+    if (placement.document_url) {
+      window.open('http://localhost:5000' + placement.document_url, '_blank');
+    }
   }
 
   deletePlacement(placement: Placement): void {
@@ -250,5 +256,11 @@ export class PlacementsComponent implements OnInit {
         }
       });
     }
+  }
+
+  isImage(url: string): boolean {
+    if (!url) return false;
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+    return imageExtensions.some(ext => url.toLowerCase().endsWith(ext));
   }
 }

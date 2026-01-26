@@ -61,12 +61,12 @@
     </mat-card>
   </div>
 
-  <!-- Liste des validations -->
+  <!-- Liste des validations avec onglets -->
   <mat-card class="validations-card modern-card">
     <mat-card-header>
       <mat-card-title>
         <mat-icon>assignment_turned_in</mat-icon>
-        Demandes de validation ({{ validations.length }})
+        Toutes les opérations ({{ validations.length }})
       </mat-card-title>
     </mat-card-header>
 
@@ -78,97 +78,313 @@
 
       <div *ngIf="!isLoading && validations.length === 0" class="no-data">
         <mat-icon>assignment_turned_in</mat-icon>
-        <h3>Aucune validation en attente</h3>
-        <p>Toutes les demandes ont été traitées.</p>
+        <h3>Aucune opération trouvée</h3>
+        <p>Il n'y a aucune opération à afficher.</p>
         <button mat-raised-button color="primary" (click)="refreshValidations()">
           <mat-icon>refresh</mat-icon>
           Actualiser
         </button>
       </div>
 
-      <table mat-table [dataSource]="validations" class="modern-table" *ngIf="!isLoading && validations.length > 0">
-        <!-- Colonne Type -->
-        <ng-container matColumnDef="type">
-          <th mat-header-cell *matHeaderCellDef>Type</th>
-          <td mat-cell *matCellDef="let validation">
-            <div class="type-cell">
-              <mat-icon [class]="'type-icon ' + validation.type">
-                {{ getTypeIcon(validation.type) }}
-              </mat-icon>
-              <span>{{ getTypeLabel(validation.type) }}</span>
-            </div>
-          </td>
-        </ng-container>
+      <!-- Onglets pour filtrer par statut -->
+      <mat-tab-group *ngIf="!isLoading && validations.length > 0" class="validation-tabs">
+        <!-- Onglet: Toutes -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">list</mat-icon>
+            Toutes ({{ validations.length }})
+          </ng-template>
+          <div class="tab-content">
+            <table mat-table [dataSource]="validations" class="modern-table">
+              <ng-container matColumnDef="type">
+                <th mat-header-cell *matHeaderCellDef>Type</th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="type-cell">
+                    <mat-icon [class]="'type-icon ' + validation.type">
+                      {{ getTypeIcon(validation.type) }}
+                    </mat-icon>
+                    <span>{{ getTypeLabel(validation.type) }}</span>
+                  </div>
+                </td>
+              </ng-container>
 
-        <!-- Colonne Description -->
-        <ng-container matColumnDef="description">
-          <th mat-header-cell *matHeaderCellDef>Description</th>
-          <td mat-cell *matCellDef="let validation">
-            <div class="description-cell">
-              <span class="description-text">{{ validation.description }}</span>
-              <div *ngIf="validation.data && validation.type === 'collaborateur'" class="collaborateur-details">
-                <small>Email: {{ validation.data.email }}</small>
-                <small>Poste: {{ validation.data.poste }}</small>
-              </div>
-            </div>
-          </td>
-        </ng-container>
+              <ng-container matColumnDef="description">
+                <th mat-header-cell *matHeaderCellDef>Description</th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="description-cell">
+                    <span class="description-text">{{ validation.description }}</span>
+                  </div>
+                </td>
+              </ng-container>
 
-        <!-- Colonne Date -->
-        <ng-container matColumnDef="date">
-          <th mat-header-cell *matHeaderCellDef>Date</th>
-          <td mat-cell *matCellDef="let validation">
-            <div class="date-cell">
-              <mat-icon class="date-icon">schedule</mat-icon>
-              <span>{{ validation.date | date:'dd/MM/yyyy HH:mm' }}</span>
-            </div>
-          </td>
-        </ng-container>
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="date-cell">
+                    <mat-icon class="date-icon">schedule</mat-icon>
+                    <span>{{ validation.date | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                </td>
+              </ng-container>
 
-        <!-- Colonne Statut -->
-        <ng-container matColumnDef="statut">
-          <th mat-header-cell *matHeaderCellDef>Statut</th>
-          <td mat-cell *matCellDef="let validation">
-            <mat-chip [class]="getStatutClass(validation.statut)" class="modern-chip">
-              <mat-icon matChipAvatar>
-                {{ validation.statut === 'en_attente' ? 'schedule' : 
-                   validation.statut === 'approuve' ? 'check_circle' : 'cancel' }}
-              </mat-icon>
-              {{ getStatutLabel(validation.statut) }}
-            </mat-chip>
-          </td>
-        </ng-container>
+              <ng-container matColumnDef="statut">
+                <th mat-header-cell *matHeaderCellDef>Statut</th>
+                <td mat-cell *matCellDef="let validation">
+                  <mat-chip [class]="getStatutClass(validation.statut)" class="modern-chip">
+                    <mat-icon matChipAvatar>
+                      {{ validation.statut === 'en_attente' ? 'schedule' : 
+                         validation.statut === 'approuve' ? 'check_circle' : 'cancel' }}
+                    </mat-icon>
+                    {{ getStatutLabel(validation.statut) }}
+                  </mat-chip>
+                </td>
+              </ng-container>
 
-        <!-- Colonne Actions -->
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
-          <td mat-cell *matCellDef="let validation">
-            <div class="actions-cell" *ngIf="validation.statut === 'en_attente'">
-              <button mat-raised-button color="primary" (click)="approuver(validation)" 
-                      class="approve-btn">
-                <mat-icon>check</mat-icon>
-                Approuver
-              </button>
-              <button mat-stroked-button color="warn" (click)="refuser(validation)" 
-                      class="reject-btn">
-                <mat-icon>close</mat-icon>
-                Refuser
-              </button>
-            </div>
-            <div *ngIf="validation.statut !== 'en_attente'" class="status-final">
-              <mat-chip [class]="getStatutClass(validation.statut)" disabled>
-                <mat-icon matChipAvatar>
-                  {{ validation.statut === 'approuve' ? 'check_circle' : 'cancel' }}
-                </mat-icon>
-                {{ getStatutLabel(validation.statut) }}
-              </mat-chip>
-            </div>
-          </td>
-        </ng-container>
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="actions-cell" *ngIf="validation.statut === 'en_attente'">
+                    <button mat-raised-button color="primary" (click)="approuver(validation)" 
+                            class="approve-btn">
+                      <mat-icon>check</mat-icon>
+                      Approuver
+                    </button>
+                    <button mat-stroked-button color="warn" (click)="refuser(validation)" 
+                            class="reject-btn">
+                      <mat-icon>close</mat-icon>
+                      Refuser
+                    </button>
+                  </div>
+                  <div *ngIf="validation.statut !== 'en_attente'" class="status-final">
+                    <mat-chip [class]="getStatutClass(validation.statut)" disabled>
+                      <mat-icon matChipAvatar>
+                        {{ validation.statut === 'approuve' ? 'check_circle' : 'cancel' }}
+                      </mat-icon>
+                      {{ getStatutLabel(validation.statut) }}
+                    </mat-chip>
+                  </div>
+                </td>
+              </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
-      </table>
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+            </table>
+          </div>
+        </mat-tab>
+
+        <!-- Onglet: En attente -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon pending">pending_actions</mat-icon>
+            En attente ({{ getValidationsByStatus('en_attente').length }})
+          </ng-template>
+          <div class="tab-content">
+            <table mat-table [dataSource]="getValidationsByStatus('en_attente')" class="modern-table">
+              <ng-container matColumnDef="type">
+                <th mat-header-cell *matHeaderCellDef>Type</th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="type-cell">
+                    <mat-icon [class]="'type-icon ' + validation.type">
+                      {{ getTypeIcon(validation.type) }}
+                    </mat-icon>
+                    <span>{{ getTypeLabel(validation.type) }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="description">
+                <th mat-header-cell *matHeaderCellDef>Description</th>
+                <td mat-cell *matCellDef="let validation">
+                  <span class="description-text">{{ validation.description }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="date-cell">
+                    <mat-icon class="date-icon">schedule</mat-icon>
+                    <span>{{ validation.date | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="statut">
+                <th mat-header-cell *matHeaderCellDef>Statut</th>
+                <td mat-cell *matCellDef="let validation">
+                  <mat-chip class="status-pending modern-chip">
+                    <mat-icon matChipAvatar>schedule</mat-icon>
+                    En attente
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="actions-cell">
+                    <button mat-raised-button color="primary" (click)="approuver(validation)" 
+                            class="approve-btn">
+                      <mat-icon>check</mat-icon>
+                      Approuver
+                    </button>
+                    <button mat-stroked-button color="warn" (click)="refuser(validation)" 
+                            class="reject-btn">
+                      <mat-icon>close</mat-icon>
+                      Refuser
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+            </table>
+            <div *ngIf="getValidationsByStatus('en_attente').length === 0" class="no-data-tab">
+              <mat-icon>check_circle</mat-icon>
+              <p>Aucune opération en attente</p>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Onglet: Approuvées -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon approved">check_circle</mat-icon>
+            Approuvées ({{ getValidationsByStatus('approuve').length }})
+          </ng-template>
+          <div class="tab-content">
+            <table mat-table [dataSource]="getValidationsByStatus('approuve')" class="modern-table">
+              <ng-container matColumnDef="type">
+                <th mat-header-cell *matHeaderCellDef>Type</th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="type-cell">
+                    <mat-icon [class]="'type-icon ' + validation.type">
+                      {{ getTypeIcon(validation.type) }}
+                    </mat-icon>
+                    <span>{{ getTypeLabel(validation.type) }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="description">
+                <th mat-header-cell *matHeaderCellDef>Description</th>
+                <td mat-cell *matCellDef="let validation">
+                  <span class="description-text">{{ validation.description }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="date-cell">
+                    <mat-icon class="date-icon">schedule</mat-icon>
+                    <span>{{ validation.date | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="statut">
+                <th mat-header-cell *matHeaderCellDef>Statut</th>
+                <td mat-cell *matCellDef="let validation">
+                  <mat-chip class="status-active modern-chip">
+                    <mat-icon matChipAvatar>check_circle</mat-icon>
+                    Approuvé
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="status-final">
+                    <mat-chip class="status-active" disabled>
+                      <mat-icon matChipAvatar>check_circle</mat-icon>
+                      Approuvé
+                    </mat-chip>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+            </table>
+            <div *ngIf="getValidationsByStatus('approuve').length === 0" class="no-data-tab">
+              <mat-icon>info</mat-icon>
+              <p>Aucune opération approuvée</p>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Onglet: Refusées -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon rejected">cancel</mat-icon>
+            Refusées ({{ getValidationsByStatus('refuse').length }})
+          </ng-template>
+          <div class="tab-content">
+            <table mat-table [dataSource]="getValidationsByStatus('refuse')" class="modern-table">
+              <ng-container matColumnDef="type">
+                <th mat-header-cell *matHeaderCellDef>Type</th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="type-cell">
+                    <mat-icon [class]="'type-icon ' + validation.type">
+                      {{ getTypeIcon(validation.type) }}
+                    </mat-icon>
+                    <span>{{ getTypeLabel(validation.type) }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="description">
+                <th mat-header-cell *matHeaderCellDef>Description</th>
+                <td mat-cell *matCellDef="let validation">
+                  <span class="description-text">{{ validation.description }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="date-cell">
+                    <mat-icon class="date-icon">schedule</mat-icon>
+                    <span>{{ validation.date | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="statut">
+                <th mat-header-cell *matHeaderCellDef>Statut</th>
+                <td mat-cell *matCellDef="let validation">
+                  <mat-chip class="status-inactive modern-chip">
+                    <mat-icon matChipAvatar>cancel</mat-icon>
+                    Refusé
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="status-final">
+                    <mat-chip class="status-inactive" disabled>
+                      <mat-icon matChipAvatar>cancel</mat-icon>
+                      Refusé
+                    </mat-chip>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+            </table>
+            <div *ngIf="getValidationsByStatus('refuse').length === 0" class="no-data-tab">
+              <mat-icon>info</mat-icon>
+              <p>Aucune opération refusée</p>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
     </mat-card-content>
   </mat-card>
 </div>

@@ -56,7 +56,8 @@
               (click)="viewEntreprise(entreprise)">
       <mat-card-header>
         <div mat-card-avatar class="entreprise-avatar">
-          <mat-icon>business</mat-icon>
+          <img *ngIf="entreprise.logo_url" [src]="getLogoUrl(entreprise.logo_url)" alt="Logo de {{ entreprise.nom }}" class="logo-image">
+          <mat-icon *ngIf="!entreprise.logo_url">business</mat-icon>
         </div>
         <mat-card-title>{{ entreprise.nom }}</mat-card-title>
         <mat-card-subtitle>SIRET: {{ entreprise.siret }}</mat-card-subtitle>

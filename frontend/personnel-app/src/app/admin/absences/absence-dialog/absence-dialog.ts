@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MatNativeDateModule, provideNativeDateAdapter } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -17,6 +17,7 @@ import { AbsenceService, Absence } from '../../../core/services/absence.service'
 @Component({
   selector: 'app-absence-dialog',
   standalone: true,
+  providers: [provideNativeDateAdapter()],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -118,6 +119,8 @@ export class AbsenceDialogComponent implements OnInit {
 
       if (this.mode === 'create') {
         this.createAbsence(absenceData);
+      } else if (this.mode === 'edit') {
+        this.updateAbsence(absenceData);
       } else if (this.mode === 'approve') {
         this.approveAbsence();
       } else if (this.mode === 'reject') {
@@ -140,6 +143,28 @@ export class AbsenceDialogComponent implements OnInit {
         console.error('Erreur lors de la création de l\'absence:', error);
         this.snackBar.open(
           error.error?.error || 'Erreur lors de la création de l\'absence',
+          'Fermer',
+          { duration: 3000, panelClass: ['error-snackbar'] }
+        );
+        this.isLoading = false;
+      }
+    });
+  }
+
+  updateAbsence(absenceData: any): void {
+    this.absenceService.updateAbsence(this.data.absence!.id!, absenceData).subscribe({
+      next: (response) => {
+        this.snackBar.open(response.message, 'Fermer', {
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+        this.dialogRef.close(true);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Erreur lors de la modification de l\'absence:', error);
+        this.snackBar.open(
+          error.error?.error || 'Erreur lors de la modification de l\'absence',
           'Fermer',
           { duration: 3000, panelClass: ['error-snackbar'] }
         );

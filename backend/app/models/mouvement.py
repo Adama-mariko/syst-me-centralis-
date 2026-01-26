@@ -8,6 +8,9 @@ class TypeMouvement(Enum):
     VALIDATION = "validation"
     MODIFICATION = "modification"
     SUPPRESSION = "suppression"
+    ABSENCE_DEMANDE = "absence_demande"
+    ABSENCE_APPROUVE = "absence_approuve"
+    ABSENCE_REFUSE = "absence_refuse"
 
 class Mouvement(db.Model):
     __tablename__ = 'mouvements'
@@ -19,6 +22,7 @@ class Mouvement(db.Model):
     entreprise_id = db.Column(db.Integer, db.ForeignKey('entreprises.id'))
     placement_id = db.Column(db.Integer, db.ForeignKey('placements.id'))
     remplacement_id = db.Column(db.Integer, db.ForeignKey('remplacements.id'))
+    absence_id = db.Column(db.Integer, db.ForeignKey('absences.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     donnees_avant = db.Column(db.Text)  # JSON string
     donnees_apres = db.Column(db.Text)  # JSON string
@@ -29,6 +33,7 @@ class Mouvement(db.Model):
     entreprise = db.relationship('Entreprise', backref='mouvements')
     placement = db.relationship('Placement', backref='mouvements')
     remplacement = db.relationship('Remplacement', backref='mouvements')
+    absence = db.relationship('Absence', backref='mouvements')
     user = db.relationship('User', backref='mouvements')
     
     def to_dict(self):
@@ -40,6 +45,7 @@ class Mouvement(db.Model):
             'entreprise_id': self.entreprise_id,
             'placement_id': self.placement_id,
             'remplacement_id': self.remplacement_id,
+            'absence_id': self.absence_id,
             'user_id': self.user_id,
             'donnees_avant': self.donnees_avant,
             'donnees_apres': self.donnees_apres,

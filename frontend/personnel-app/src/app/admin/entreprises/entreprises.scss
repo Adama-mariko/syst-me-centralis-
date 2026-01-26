@@ -342,3 +342,31 @@
 .entreprise-card:nth-child(4) { animation-delay: 0.4s; }
 .entreprise-card:nth-child(5) { animation-delay: 0.5s; }
 .entreprise-card:nth-child(6) { animation-delay: 0.6s; }
+// Styles pour l'avatar/logo de l'entreprise
+.entreprise-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  .logo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 2px;
+    background: white;
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}

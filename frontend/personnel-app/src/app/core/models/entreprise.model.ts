@@ -10,6 +10,7 @@ export interface Entreprise {
   contact_rh_nom?: string;
   contact_rh_email?: string;
   contact_rh_telephone?: string;
+  logo_url?: string;  // Nouveau champ pour le logo
   is_active: boolean;
   created_at: string;
   updated_at: string;

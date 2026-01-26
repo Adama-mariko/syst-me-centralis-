@@ -1,6 +1,7 @@
 .entreprise-dialog {
   min-width: 600px;
-  max-width: 700px;
+  max-width: 800px;
+  width: 100%;
 
   h2[mat-dialog-title] {
     display: flex;
@@ -138,5 +139,102 @@ mat-dialog-actions {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+// Styles pour l'upload de logo
+.logo-upload-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 2px dashed #cbd5e1;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: #6366f1;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  }
+
+  .logo-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 3px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .preview-logo {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 4px;
+    }
+
+    .no-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #94a3b8;
+
+      mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        margin-bottom: 4px;
+      }
+
+      span {
+        font-size: 10px;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .logo-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 8px !important;
+      font-weight: 500 !important;
+      padding: 8px 16px !important;
+      font-size: 13px !important;
+      transition: all 0.3s ease !important;
+
+      &[color="primary"] {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+        color: white !important;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3) !important;
+
+        &:hover {
+          transform: translateY(-1px) !important;
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4) !important;
+        }
+      }
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
   }
 }

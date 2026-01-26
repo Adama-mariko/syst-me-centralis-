@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MatNativeDateModule, provideNativeDateAdapter } from '@angular/material/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { RemplacementService } from '../../../core/services/remplacement.service';
@@ -40,6 +40,7 @@ export interface RemplacementDialogData {
     MatDatepickerModule,
     MatNativeDateModule
   ],
+  providers: [provideNativeDateAdapter()],
   templateUrl: './remplacement-dialog.html',
   styleUrl: './remplacement-dialog.scss'
 })
@@ -73,14 +74,13 @@ export class RemplacementDialogComponent implements OnInit {
 
   private createForm(): FormGroup {
     return this.fb.group({
-      collaborateur_remplacant_id: ['', [Validators.required]],
-      collaborateur_remplace_id: ['', [Validators.required]],
-      entreprise_id: ['', [Validators.required]],
+      remplacant_id: ['', [Validators.required]],
+      remplace_id: ['', [Validators.required]],
+      type_remplacement: ['temporaire', [Validators.required]],
       motif: ['', [Validators.required]],
       date_debut: ['', [Validators.required]],
       date_fin: ['', [Validators.required]],
-      statut: ['planifie', [Validators.required]],
-      notes: ['']
+      commentaires: ['']
     });
   }
 
@@ -98,14 +98,13 @@ export class RemplacementDialogComponent implements OnInit {
 
   private populateForm(remplacement: Remplacement): void {
     this.remplacementForm.patchValue({
-      collaborateur_remplacant_id: remplacement.collaborateur_remplacant_id,
-      collaborateur_remplace_id: remplacement.collaborateur_remplace_id,
-      entreprise_id: remplacement.entreprise_id,
+      remplacant_id: remplacement.remplacant_id,
+      remplace_id: remplacement.remplace_id,
+      type_remplacement: remplacement.type_remplacement,
       motif: remplacement.motif,
       date_debut: remplacement.date_debut,
       date_fin: remplacement.date_fin,
-      statut: remplacement.statut,
-      notes: remplacement.notes || ''
+      commentaires: remplacement.commentaires || ''
     });
   }
 
@@ -114,6 +113,17 @@ export class RemplacementDialogComponent implements OnInit {
       this.isLoading = true;
       
       const formData = this.remplacementForm.value;
+      console.log('[DEBUG] Données du formulaire:', formData);
+      
+      // Formatage des dates si nécessaire
+      if (formData.date_debut instanceof Date) {
+        formData.date_debut = formData.date_debut.toISOString();
+      }
+      if (formData.date_fin instanceof Date) {
+        formData.date_fin = formData.date_fin.toISOString();
+      }
+      
+      console.log('[DEBUG] Données formatées à envoyer:', formData);
       
       const request = this.isEditMode 
         ? this.remplacementService.updateRemplacement(this.data.remplacement!.id, formData)
@@ -121,6 +131,7 @@ export class RemplacementDialogComponent implements OnInit {
 
       request.subscribe({
         next: (response) => {
+          console.log('[DEBUG] Réponse du serveur:', response);
           this.isLoading = false;
           this.snackBar.open(response.message, 'Fermer', {
             duration: 3000,
@@ -129,12 +140,23 @@ export class RemplacementDialogComponent implements OnInit {
           this.dialogRef.close(response.remplacement);
         },
         error: (error) => {
+          console.error('[ERROR] Erreur lors de la sauvegarde:', error);
+          console.error('[ERROR] Détails de l\'erreur:', error.error);
           this.isLoading = false;
-          const message = error.error?.message || 'Erreur lors de la sauvegarde';
+          const message = error.error?.message || error.error?.error || 'Erreur lors de la sauvegarde';
           this.snackBar.open(message, 'Fermer', {
             duration: 4000,
             panelClass: ['error-snackbar']
           });
+        }
+      });
+    } else {
+      console.log('[DEBUG] Formulaire invalide:', this.remplacementForm.errors);
+      console.log('[DEBUG] Erreurs par champ:');
+      Object.keys(this.remplacementForm.controls).forEach(key => {
+        const control = this.remplacementForm.get(key);
+        if (control && control.errors) {
+          console.log(`[DEBUG] ${key}:`, control.errors);
         }
       });
     }

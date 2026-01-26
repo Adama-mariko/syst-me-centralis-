@@ -3,10 +3,9 @@ from datetime import datetime
 from enum import Enum
 
 class TypeRemplacement(Enum):
-    CONGE = "conge"
-    MALADIE = "maladie"
-    FORMATION = "formation"
-    AUTRE = "autre"
+    TEMPORAIRE = "temporaire"
+    PERMANENT = "permanent"
+    URGENCE = "urgence"
 
 class StatutRemplacement(Enum):
     PLANIFIE = "planifie"
@@ -38,11 +37,11 @@ class Remplacement(db.Model):
             'id': self.id,
             'remplace_id': self.remplace_id,
             'remplacant_id': self.remplacant_id,
-            'type_remplacement': self.type_remplacement.value,
+            'type_remplacement': self.type_remplacement.value if hasattr(self.type_remplacement, 'value') else self.type_remplacement,
             'motif': self.motif,
             'date_debut': self.date_debut.isoformat(),
             'date_fin': self.date_fin.isoformat(),
-            'statut': self.statut.value,
+            'statut': self.statut.value if hasattr(self.statut, 'value') else self.statut,
             'commentaires': self.commentaires,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()

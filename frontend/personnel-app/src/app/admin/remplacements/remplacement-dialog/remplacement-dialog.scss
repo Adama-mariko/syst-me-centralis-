@@ -1,22 +1,10 @@
-// Classe globale pour les grands dialogs
-::ng-deep .large-dialog {
-  .mat-mdc-dialog-container {
-    --mdc-dialog-container-max-width: 95vw !important;
-    --mdc-dialog-container-max-height: 90vh !important;
-    max-width: 95vw !important;
-    max-height: 90vh !important;
-    width: 95vw !important;
-    height: 90vh !important;
-  }
-}
-
 .remplacement-dialog {
-  min-width: 1600px;
-  max-width: 95vw;
-  width: 95vw;
-  height: 90vh;
-  max-height: 90vh !important;
-  overflow: hidden !important;
+  min-width: 800px;
+  max-width: 900px;
+  width: 100%;
+  height: auto;
+  max-height: 90vh;
+  overflow: hidden;
 
   h2[mat-dialog-title] {
     display: flex;
@@ -42,10 +30,10 @@
 
 mat-dialog-content {
   padding: 0 32px;
-  height: calc(90vh - 160px);
-  max-height: calc(90vh - 160px) !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+  height: auto;
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .remplacement-form {
@@ -240,35 +228,16 @@ mat-dialog-actions {
 }
 
 // Responsive amélioré
-@media (max-width: 1600px) {
-  .remplacement-dialog {
-    min-width: 90vw;
-    max-width: 90vw;
-  }
-}
-
-@media (max-width: 1200px) {
+@media (max-width: 900px) {
   .remplacement-dialog {
     min-width: 95vw;
     max-width: 95vw;
-  }
-}
-
-@media (max-width: 900px) {
-  .remplacement-dialog {
-    min-width: 100vw;
-    max-width: 100vw;
-    height: 100vh;
-    max-height: 100vh;
-    margin: 0;
-    border-radius: 0;
+    width: 95vw;
   }
 
   mat-dialog-content {
     padding: 0 16px;
-    height: calc(100vh - 140px) !important;
-    max-height: calc(100vh - 140px) !important;
-    overflow-y: auto !important;
+    max-height: 60vh;
   }
 
   mat-dialog-actions {

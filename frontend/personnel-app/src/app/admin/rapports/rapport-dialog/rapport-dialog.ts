@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MatNativeDateModule, provideNativeDateAdapter } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -17,6 +17,7 @@ import { EntrepriseService } from '../../../core/services/entreprise.service';
 @Component({
   selector: 'app-rapport-dialog',
   standalone: true,
+  providers: [provideNativeDateAdapter()],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -42,15 +43,15 @@ import { EntrepriseService } from '../../../core/services/entreprise.service';
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Date de début</mat-label>
             <input matInput [matDatepicker]="pickerDebut" formControlName="periode_debut">
-            <mat-datepicker-toggle matSuffix [for]="pickerDebut"></mat-datepicker-toggle>
-            <mat-datepicker #pickerDebut></mat-datepicker>
+            <mat-datepicker-toggle matSuffix [for]="pickerDebut" (click)="$event.stopPropagation()"></mat-datepicker-toggle>
+            <mat-datepicker #pickerDebut touchUi="false"></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Date de fin</mat-label>
             <input matInput [matDatepicker]="pickerFin" formControlName="periode_fin">
-            <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
-            <mat-datepicker #pickerFin></mat-datepicker>
+            <mat-datepicker-toggle matSuffix [for]="pickerFin" (click)="$event.stopPropagation()"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFin touchUi="false"></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width" *ngIf="entreprises.length > 0">

@@ -1,22 +1,10 @@
-// Classe globale pour les grands dialogs
-::ng-deep .large-dialog {
-  .mat-mdc-dialog-container {
-    --mdc-dialog-container-max-width: 95vw !important;
-    --mdc-dialog-container-max-height: 90vh !important;
-    max-width: 95vw !important;
-    max-height: 90vh !important;
-    width: 95vw !important;
-    height: 90vh !important;
-  }
-}
-
 .placement-dialog {
-  min-width: 1600px;
-  max-width: 95vw;
-  width: 95vw;
-  height: 90vh;
-  max-height: 90vh !important;
-  overflow: hidden !important;
+  min-width: 800px;
+  max-width: 900px;
+  width: 100%;
+  height: auto;
+  max-height: 90vh;
+  overflow: hidden;
 
   h2[mat-dialog-title] {
     display: flex;
@@ -42,10 +30,10 @@
 
 mat-dialog-content {
   padding: 0 32px;
-  height: calc(90vh - 160px);
-  max-height: calc(90vh - 160px) !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+  height: auto;
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .placement-form {
@@ -141,6 +129,7 @@ mat-dialog-content {
     &.completed mat-icon { color: #2563eb; }
     &.cancelled mat-icon { color: #dc2626; }
     &.pending mat-icon { color: #d97706; }
+    &.confirmed mat-icon { color: #0277bd; }
 
     span {
       font-weight: 500;
@@ -195,35 +184,16 @@ mat-dialog-actions {
 }
 
 // Responsive amélioré
-@media (max-width: 1600px) {
-  .placement-dialog {
-    min-width: 90vw;
-    max-width: 90vw;
-  }
-}
-
-@media (max-width: 1200px) {
+@media (max-width: 900px) {
   .placement-dialog {
     min-width: 95vw;
     max-width: 95vw;
-  }
-}
-
-@media (max-width: 900px) {
-  .placement-dialog {
-    min-width: 100vw;
-    max-width: 100vw;
-    height: 100vh;
-    max-height: 100vh;
-    margin: 0;
-    border-radius: 0;
+    width: 95vw;
   }
 
   mat-dialog-content {
     padding: 0 16px;
-    height: calc(100vh - 140px) !important;
-    max-height: calc(100vh - 140px) !important;
-    overflow-y: auto !important;
+    max-height: 60vh;
   }
 
   mat-dialog-actions {
@@ -249,5 +219,190 @@ mat-dialog-actions {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+// Styles pour l'upload de fichier
+.file-upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .upload-btn {
+    width: 100%;
+    height: 48px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    background: white;
+    color: #6366f1;
+    font-weight: 600;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: #6366f1;
+      background: #f8fafc;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    }
+
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+
+  .file-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 2px solid #86efac;
+    border-radius: 12px;
+    animation: slideIn 0.3s ease-out;
+
+    .file-icon {
+      color: #059669;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+
+    .file-name {
+      flex: 1;
+      font-weight: 500;
+      color: #065f46;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .remove-btn {
+      color: #dc2626;
+      width: 32px;
+      height: 32px;
+
+      &:hover {
+        background: rgba(220, 38, 38, 0.1);
+      }
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+
+  .file-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 8px 12px;
+    background: #eff6ff;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #1e40af;
+
+    .hint-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: #3b82f6;
+    }
+  }
+}
+
+// Styles pour l'affichage du document existant
+.existing-document {
+  margin-bottom: 16px;
+
+  .document-preview-card {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .document-image {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .document-file-preview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      background: #f8fafc;
+      border-radius: 8px;
+
+      .file-icon-large {
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
+        color: #6366f1;
+        margin-bottom: 12px;
+      }
+
+      .file-name {
+        font-weight: 500;
+        color: #374151;
+        text-align: center;
+        word-break: break-all;
+      }
+    }
+
+    .document-actions {
+      display: flex;
+      gap: 8px;
+
+      .view-btn {
+        flex: 1;
+        color: #6366f1;
+        border-color: #6366f1;
+        font-weight: 600;
+
+        &:hover {
+          background: #f0f4ff;
+        }
+
+        mat-icon {
+          margin-right: 8px;
+        }
+      }
+
+      .remove-doc-btn {
+        flex: 1;
+        color: #dc2626;
+        border-color: #dc2626;
+        font-weight: 600;
+
+        &:hover {
+          background: #fef2f2;
+        }
+
+        mat-icon {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }

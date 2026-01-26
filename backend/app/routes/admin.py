@@ -29,11 +29,25 @@ def create_upload_folder():
 def get_users():
     """Récupération de tous les utilisateurs"""
     try:
+        print("[DEBUG] Récupération des utilisateurs demandée")
+        current_user = AuthService.get_current_user()
+        print(f"[DEBUG] Utilisateur actuel: {current_user.email} (role: {current_user.role})")
+        print(f"[DEBUG] Entreprise associée: {current_user.entreprise_id}")
+        
         users = User.query.all()
+        print(f"[DEBUG] {len(users)} utilisateurs trouvés")
+        
+        # Diagnostic des utilisateurs
+        for user in users:
+            print(f"[DEBUG] User {user.id}: {user.email}, role={user.role.value}, entreprise_id={user.entreprise_id}")
+        
         return jsonify({
             'users': [user.to_dict() for user in users]
         }), 200
     except Exception as e:
+        print(f"[ERROR] Erreur dans get_users: {str(e)}")
+        import traceback
+        print(f"[ERROR] Traceback: {traceback.format_exc()}")
         return jsonify({'message': 'Erreur lors de la récupération', 'error': str(e)}), 500
 
 @admin_bp.route('/users', methods=['POST'])

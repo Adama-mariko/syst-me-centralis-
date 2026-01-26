@@ -9,7 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MatNativeDateModule, provideNativeDateAdapter } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
@@ -18,10 +18,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { AbsenceService, Absence } from '../../core/services/absence.service';
 import { CollaborateurService } from '../../core/services/collaborateur.service';
 import { AbsenceDialogComponent } from './absence-dialog/absence-dialog';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-absences',
   standalone: true,
+  providers: [provideNativeDateAdapter()],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -168,28 +170,26 @@ export class AbsencesComponent implements OnInit {
     });
   }
 
-  approuverAbsence(absence: Absence): void {
+  voirAbsence(absence: Absence): void {
     const dialogRef = this.dialog.open(AbsenceDialogComponent, {
-      width: '500px',
+      width: '700px',
       data: {
         absence,
-        mode: 'approve'
+        mode: 'view'
       }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadAbsences();
-      }
-    });
+    // Pas besoin de recharger pour le mode view
+    dialogRef.afterClosed().subscribe();
   }
 
-  refuserAbsence(absence: Absence): void {
+  modifierAbsence(absence: Absence): void {
     const dialogRef = this.dialog.open(AbsenceDialogComponent, {
-      width: '500px',
+      width: '600px',
       data: {
         absence,
-        mode: 'reject'
+        collaborateurs: this.collaborateurs,
+        mode: 'edit'
       }
     });
 
@@ -226,11 +226,96 @@ export class AbsencesComponent implements OnInit {
     return `${debut} - ${fin}`;
   }
 
-  canApprove(absence: Absence): boolean {
+  canEdit(absence: Absence): boolean {
+    // On peut modifier seulement si l'absence est en attente
     return absence.statut === 'en_attente';
   }
 
-  canReject(absence: Absence): boolean {
+  canDelete(absence: Absence): boolean {
+    // On peut supprimer seulement si l'absence est en attente
     return absence.statut === 'en_attente';
+  }
+
+  supprimerAbsence(absence: Absence): void {
+    // Utiliser un dialog Material au lieu d'un alert
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Confirmer la suppression',
+        message: `Êtes-vous sûr de vouloir supprimer cette absence de ${absence.collaborateur?.nom} ${absence.collaborateur?.prenom} ?`,
+        confirmText: 'Supprimer',
+        cancelText: 'Annuler',
+        confirmColor: 'warn' as const
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.absenceService.deleteAbsence(absence.id!).subscribe({
+          next: () => {
+            this.snackBar.open('Absence supprimée avec succès', 'Fermer', {
+              duration: 3000,
+              panelClass: ['success-snackbar']
+            });
+            this.loadAbsences();
+          },
+          error: (error) => {
+            console.error('Erreur lors de la suppression:', error);
+            this.snackBar.open('Erreur lors de la suppression de l\'absence', 'Fermer', {
+              duration: 3000,
+              panelClass: ['error-snackbar']
+            });
+          }
+        });
+      }
+    });
+  }
+
+  approuverAbsence(absence: Absence): void {
+    const dialogRef = this.dialog.open(AbsenceDialogComponent, {
+      width: '500px',
+      data: {
+        absence,
+        mode: 'approve'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadAbsences();
+      }
+    });
+  }
+
+  refuserAbsence(absence: Absence): void {
+    const dialogRef = this.dialog.open(AbsenceDialogComponent, {
+      width: '500px',
+      data: {
+        absence,
+        mode: 'reject'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadAbsences();
+      }
+    });
+  }
+
+  canApprove(absence: Absence): boolean {
+    // Seuls les RH peuvent approuver et seulement si l'absence est en attente
+    return absence.statut === 'en_attente' && this.isRH();
+  }
+
+  canReject(absence: Absence): boolean {
+    // Seuls les RH peuvent refuser et seulement si l'absence est en attente
+    return absence.statut === 'en_attente' && this.isRH();
+  }
+
+  private isRH(): boolean {
+    // Vérifier si l'utilisateur actuel est RH
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    return currentUser.role === 'rh_entreprise';
   }
 }

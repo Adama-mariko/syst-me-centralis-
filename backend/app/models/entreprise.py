@@ -15,6 +15,7 @@ class Entreprise(db.Model):
     contact_rh_nom = db.Column(db.String(100))
     contact_rh_email = db.Column(db.String(120))
     contact_rh_telephone = db.Column(db.String(20))
+    logo_url = db.Column(db.String(255))  # Nouveau champ pour le logo
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -36,6 +37,7 @@ class Entreprise(db.Model):
             'contact_rh_nom': self.contact_rh_nom,
             'contact_rh_email': self.contact_rh_email,
             'contact_rh_telephone': self.contact_rh_telephone,
+            'logo_url': self.logo_url,  # Ajouter le logo dans la réponse
             'is_active': self.is_active,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()

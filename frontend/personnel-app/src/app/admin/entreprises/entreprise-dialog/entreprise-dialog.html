@@ -6,6 +6,29 @@
 
   <mat-dialog-content>
     <form [formGroup]="entrepriseForm" class="entreprise-form">
+      <!-- Logo de l'entreprise -->
+      <div class="logo-upload-section">
+        <div class="logo-preview">
+          <img *ngIf="selectedLogoUrl" [src]="selectedLogoUrl" alt="Logo de l'entreprise" class="preview-logo">
+          <img *ngIf="!selectedLogoUrl && data.entreprise?.logo_url" [src]="getLogoUrl(data.entreprise?.logo_url)" alt="Logo actuel" class="preview-logo">
+          <div *ngIf="!selectedLogoUrl && !data.entreprise?.logo_url" class="no-logo">
+            <mat-icon>business</mat-icon>
+            <span>Aucun logo</span>
+          </div>
+        </div>
+        <div class="logo-actions">
+          <input #logoInput type="file" accept="image/*" (change)="onLogoSelected($event)" style="display: none;">
+          <button mat-raised-button color="primary" type="button" (click)="logoInput.click()">
+            <mat-icon>image</mat-icon>
+            Choisir un logo
+          </button>
+          <button mat-button type="button" (click)="removeLogo()" *ngIf="selectedLogoUrl">
+            <mat-icon>delete</mat-icon>
+            Supprimer
+          </button>
+        </div>
+      </div>
+
       <!-- Informations générales -->
       <div class="form-section">
         <h3>Informations générales</h3>

@@ -35,7 +35,11 @@ def get_entreprises():
 def create_entreprise():
     """Création d'une nouvelle entreprise"""
     try:
-        data = request.get_json()
+        data = request.get_json() if request.is_json else {}
+        
+        # Si c'est un FormData (avec fichier), récupérer les données différemment
+        if not request.is_json:
+            data = request.form.to_dict()
         
         # Vérification des champs requis
         required_fields = ['nom', 'siret', 'adresse', 'ville', 'code_postal']
@@ -46,6 +50,28 @@ def create_entreprise():
         # Vérification de l'unicité du SIRET
         if Entreprise.query.filter_by(siret=data['siret']).first():
             return jsonify({'message': 'Ce SIRET est déjà utilisé'}), 400
+        
+        # Gestion de l'upload de logo
+        logo_url = None
+        if 'logo' in request.files:
+            logo_file = request.files['logo']
+            if logo_file and logo_file.filename:
+                import os
+                import uuid
+                from werkzeug.utils import secure_filename
+                
+                # Créer le dossier uploads/logos s'il n'existe pas
+                upload_folder = os.path.join('uploads', 'logos')
+                os.makedirs(upload_folder, exist_ok=True)
+                
+                # Générer un nom de fichier unique
+                file_extension = os.path.splitext(secure_filename(logo_file.filename))[1]
+                filename = f"{uuid.uuid4().hex}{file_extension}"
+                file_path = os.path.join(upload_folder, filename)
+                
+                # Sauvegarder le fichier
+                logo_file.save(file_path)
+                logo_url = f"/uploads/logos/{filename}"
         
         # Création de l'entreprise
         entreprise = Entreprise(
@@ -58,7 +84,8 @@ def create_entreprise():
             email=data.get('email'),
             contact_rh_nom=data.get('contact_rh_nom'),
             contact_rh_email=data.get('contact_rh_email'),
-            contact_rh_telephone=data.get('contact_rh_telephone')
+            contact_rh_telephone=data.get('contact_rh_telephone'),
+            logo_url=logo_url
         )
         
         db.session.add(entreprise)
@@ -71,6 +98,7 @@ def create_entreprise():
         
     except Exception as e:
         db.session.rollback()
+        print(f"Erreur création entreprise: {str(e)}")  # Pour debug
         return jsonify({'message': 'Erreur lors de la création', 'error': str(e)}), 500
 
 @entreprises_bp.route('/<int:entreprise_id>', methods=['GET'])
@@ -97,7 +125,32 @@ def update_entreprise(entreprise_id):
     """Modification d'une entreprise"""
     try:
         entreprise = Entreprise.query.get_or_404(entreprise_id)
-        data = request.get_json()
+        data = request.get_json() if request.is_json else {}
+        
+        # Si c'est un FormData (avec fichier), récupérer les données différemment
+        if not request.is_json:
+            data = request.form.to_dict()
+        
+        # Gestion de l'upload de logo
+        if 'logo' in request.files:
+            logo_file = request.files['logo']
+            if logo_file and logo_file.filename:
+                import os
+                import uuid
+                from werkzeug.utils import secure_filename
+                
+                # Créer le dossier uploads/logos s'il n'existe pas
+                upload_folder = os.path.join('uploads', 'logos')
+                os.makedirs(upload_folder, exist_ok=True)
+                
+                # Générer un nom de fichier unique
+                file_extension = os.path.splitext(secure_filename(logo_file.filename))[1]
+                filename = f"{uuid.uuid4().hex}{file_extension}"
+                file_path = os.path.join(upload_folder, filename)
+                
+                # Sauvegarder le fichier
+                logo_file.save(file_path)
+                entreprise.logo_url = f"/uploads/logos/{filename}"
         
         # Mise à jour des champs
         if 'nom' in data:

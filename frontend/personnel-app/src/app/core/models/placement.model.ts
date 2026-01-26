@@ -2,13 +2,15 @@ export interface Placement {
   id: number;
   collaborateur_id: number;
   entreprise_id: number;
-  poste: string;
+  poste_demande: string;
   date_debut: string;
   date_fin?: string;
-  salaire: number;
-  statut: 'en_attente' | 'en_cours' | 'termine' | 'annule';
+  salaire_propose: number;
+  statut: 'en_attente' | 'valide_admin' | 'valide_rh' | 'confirme' | 'en_cours' | 'termine' | 'annule';
   description?: string;
-  conditions?: string;
+  commentaires?: string;
+  document_url?: string;
+  validation_rh_date?: string;
   created_at: string;
   updated_at: string;
 }

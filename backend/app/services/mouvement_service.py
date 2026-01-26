@@ -9,10 +9,14 @@ class MouvementService:
     def enregistrer_mouvement(type_mouvement, description, user_id, 
                             collaborateur_id=None, entreprise_id=None, 
                             placement_id=None, remplacement_id=None, absence_id=None,
-                            competence_id=None, donnees_avant=None, donnees_apres=None,
-                            ip_address=None, user_agent=None):
+                            donnees_avant=None, donnees_apres=None):
         """Enregistrer un mouvement pour la traçabilité"""
         try:
+            print(f"🔍 MouvementService.enregistrer_mouvement - Type: {type_mouvement}")
+            print(f"🔍 MouvementService.enregistrer_mouvement - Description: {description}")
+            print(f"🔍 MouvementService.enregistrer_mouvement - User ID: {user_id}")
+            print(f"🔍 MouvementService.enregistrer_mouvement - Absence ID: {absence_id}")
+            
             mouvement = Mouvement(
                 type_mouvement=type_mouvement,
                 description=description,
@@ -21,20 +25,23 @@ class MouvementService:
                 placement_id=placement_id,
                 remplacement_id=remplacement_id,
                 absence_id=absence_id,
-                competence_id=competence_id,
                 user_id=user_id,
                 donnees_avant=json.dumps(donnees_avant) if donnees_avant else None,
-                donnees_apres=json.dumps(donnees_apres) if donnees_apres else None,
-                ip_address=ip_address,
-                user_agent=user_agent
+                donnees_apres=json.dumps(donnees_apres) if donnees_apres else None
             )
             
+            print(f"🔍 Objet Mouvement créé, ajout à la session...")
             db.session.add(mouvement)
             db.session.commit()
+            print(f"✅ Mouvement sauvegardé avec ID: {mouvement.id}")
             
             return mouvement
             
         except Exception as e:
+            print(f"❌ Erreur dans MouvementService.enregistrer_mouvement: {str(e)}")
+            print(f"❌ Type d'erreur: {type(e).__name__}")
+            import traceback
+            print(f"❌ Traceback: {traceback.format_exc()}")
             db.session.rollback()
             raise e
     

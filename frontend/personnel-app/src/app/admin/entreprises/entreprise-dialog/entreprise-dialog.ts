@@ -39,6 +39,8 @@ export class EntrepriseDialogComponent implements OnInit {
   entrepriseForm: FormGroup;
   isEditMode: boolean;
   isLoading = false;
+  selectedLogoUrl: string | null = null;
+  selectedLogoFile: File | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -54,7 +56,62 @@ export class EntrepriseDialogComponent implements OnInit {
   ngOnInit(): void {
     if (this.isEditMode && this.data.entreprise) {
       this.populateForm(this.data.entreprise);
+      // Charger le logo existant si il existe
+      if (this.data.entreprise.logo_url) {
+        console.log('Logo existant trouvé:', this.data.entreprise.logo_url);
+      }
     }
+  }
+
+  // Nouvelle méthode pour gérer la sélection de logo
+  onLogoSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      console.log('Logo sélectionné:', file.name, file.type, file.size);
+      
+      // Vérifier le type de fichier
+      if (!file.type.startsWith('image/')) {
+        this.snackBar.open('Veuillez sélectionner un fichier image valide', 'Fermer', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+        return;
+      }
+
+      // Vérifier la taille du fichier (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        this.snackBar.open('La taille de l\'image ne doit pas dépasser 5MB', 'Fermer', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+        return;
+      }
+
+      this.selectedLogoFile = file;
+
+      // Créer une URL de prévisualisation
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        console.log('Logo chargé, URL:', e.target.result?.substring(0, 50) + '...');
+        this.selectedLogoUrl = e.target.result;
+      };
+      reader.onerror = (error) => {
+        console.error('Erreur lors de la lecture du fichier:', error);
+        this.snackBar.open('Erreur lors de la lecture du fichier', 'Fermer', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      console.log('Aucun fichier sélectionné');
+    }
+  }
+
+  // Nouvelle méthode pour supprimer le logo
+  removeLogo(): void {
+    this.selectedLogoUrl = null;
+    this.selectedLogoFile = null;
   }
 
   private createForm(): FormGroup {
@@ -92,18 +149,26 @@ export class EntrepriseDialogComponent implements OnInit {
   onSave(): void {
     if (this.entrepriseForm.valid) {
       this.isLoading = true;
-      const formData = { ...this.entrepriseForm.value };
       
-      // Nettoyer les données vides
-      Object.keys(formData).forEach(key => {
-        if (formData[key] === '' || formData[key] === null) {
-          delete formData[key];
+      // Créer FormData pour l'upload de fichier
+      const formData = new FormData();
+      
+      // Ajouter les données du formulaire
+      Object.keys(this.entrepriseForm.value).forEach(key => {
+        const value = this.entrepriseForm.value[key];
+        if (value !== '' && value !== null && value !== undefined) {
+          formData.append(key, value);
         }
       });
 
+      // Ajouter le logo si il est sélectionné
+      if (this.selectedLogoFile) {
+        formData.append('logo', this.selectedLogoFile);
+      }
+
       const request = this.isEditMode 
-        ? this.entrepriseService.updateEntreprise(this.data.entreprise!.id, formData)
-        : this.entrepriseService.createEntreprise(formData);
+        ? this.entrepriseService.updateEntrepriseWithLogo(this.data.entreprise!.id, formData)
+        : this.entrepriseService.createEntrepriseWithLogo(formData);
 
       request.subscribe({
         next: (response) => {
@@ -128,5 +193,15 @@ export class EntrepriseDialogComponent implements OnInit {
 
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  getLogoUrl(logoUrl: string | undefined): string {
+    if (!logoUrl) return '';
+    // Si l'URL commence déjà par http, la retourner telle quelle
+    if (logoUrl.startsWith('http')) {
+      return logoUrl;
+    }
+    // Sinon, construire l'URL complète avec le backend
+    return `http://localhost:5000${logoUrl}`;
   }
 }

@@ -64,14 +64,13 @@ export class RemplacementsComponent implements OnInit {
   // Filtres
   searchTerm = '';
   selectedStatus = '';
-  selectedEntreprise = '';
   selectedType = '';
 
   // Configuration du tableau
   displayedColumns: string[] = [
-    'collaborateur_remplacant',
-    'collaborateur_remplace', 
-    'entreprise',
+    'remplacant',
+    'remplace', 
+    'type_remplacement',
     'motif',
     'date_debut',
     'date_fin',
@@ -122,13 +121,12 @@ export class RemplacementsComponent implements OnInit {
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
       filtered = filtered.filter(remplacement => {
-        const remplacant = this.getCollaborateurName(remplacement.collaborateur_remplacant_id);
-        const remplace = this.getCollaborateurName(remplacement.collaborateur_remplace_id);
-        const entreprise = this.getEntrepriseName(remplacement.entreprise_id);
+        const remplacant = this.getCollaborateurName(remplacement.remplacant_id);
+        const remplace = this.getCollaborateurName(remplacement.remplace_id);
+        const motifLabel = remplacement.motif ? this.getMotifLabel(remplacement.motif) : '';
         return remplacant.toLowerCase().includes(term) ||
                remplace.toLowerCase().includes(term) ||
-               entreprise.toLowerCase().includes(term) ||
-               remplacement.motif.toLowerCase().includes(term);
+               motifLabel.toLowerCase().includes(term);
       });
     }
 
@@ -137,11 +135,9 @@ export class RemplacementsComponent implements OnInit {
       filtered = filtered.filter(remplacement => remplacement.statut === this.selectedStatus);
     }
 
-    // Filtre par entreprise
-    if (this.selectedEntreprise) {
-      filtered = filtered.filter(remplacement => 
-        remplacement.entreprise_id === Number(this.selectedEntreprise)
-      );
+    // Filtre par type
+    if (this.selectedType) {
+      filtered = filtered.filter(remplacement => remplacement.type_remplacement === this.selectedType);
     }
 
     this.filteredRemplacements = filtered;
@@ -150,7 +146,6 @@ export class RemplacementsComponent implements OnInit {
   clearFilters(): void {
     this.searchTerm = '';
     this.selectedStatus = '';
-    this.selectedEntreprise = '';
     this.selectedType = '';
     this.applyFilters();
   }
@@ -160,9 +155,44 @@ export class RemplacementsComponent implements OnInit {
     return collaborateur ? `${collaborateur.prenom} ${collaborateur.nom}` : '';
   }
 
-  getEntrepriseName(entrepriseId: number): string {
-    const entreprise = this.entreprises.find(e => e.id === entrepriseId);
-    return entreprise?.nom || '';
+  getTypeLabel(type: string): string {
+    const labels: { [key: string]: string } = {
+      'temporaire': 'Temporaire',
+      'permanent': 'Permanent',
+      'urgence': 'Urgence'
+    };
+    return labels[type] || type;
+  }
+
+  getTypeIcon(type: string): string {
+    const icons: { [key: string]: string } = {
+      'temporaire': 'schedule',
+      'permanent': 'person',
+      'urgence': 'warning'
+    };
+    return icons[type] || 'swap_horiz';
+  }
+
+  getMotifLabel(motif: string): string {
+    const labels: { [key: string]: string } = {
+      'conge': 'Congés',
+      'maladie': 'Maladie',
+      'formation': 'Formation',
+      'maternite': 'Congé maternité',
+      'autre': 'Autre'
+    };
+    return labels[motif] || motif;
+  }
+
+  getMotifIcon(motif: string): string {
+    const icons: { [key: string]: string } = {
+      'conge': 'beach_access',
+      'maladie': 'local_hospital',
+      'formation': 'school',
+      'maternite': 'child_care',
+      'autre': 'help_outline'
+    };
+    return icons[motif] || 'help_outline';
   }
 
   getStatusLabel(status: string): string {
@@ -185,23 +215,12 @@ export class RemplacementsComponent implements OnInit {
     return classes[status] || '';
   }
 
-  getMotifIcon(motif: string): string {
-    const icons: { [key: string]: string } = {
-      'conge': 'beach_access',
-      'maladie': 'local_hospital',
-      'formation': 'school',
-      'autre': 'help_outline'
-    };
-    return icons[motif] || 'swap_horiz';
-  }
-
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(RemplacementDialogComponent, {
-      width: '95vw',
-      maxWidth: '95vw',
-      height: '90vh',
+      width: '80%',
+      maxWidth: '900px',
+      height: 'auto',
       maxHeight: '90vh',
-      panelClass: 'large-dialog',
       data: { isEditMode: false }
     });
 
@@ -214,11 +233,10 @@ export class RemplacementsComponent implements OnInit {
 
   editRemplacement(remplacement: Remplacement): void {
     const dialogRef = this.dialog.open(RemplacementDialogComponent, {
-      width: '95vw',
-      maxWidth: '95vw',
-      height: '90vh',
+      width: '80%',
+      maxWidth: '900px',
+      height: 'auto',
       maxHeight: '90vh',
-      panelClass: 'large-dialog',
       data: { remplacement, isEditMode: true }
     });
 
@@ -235,8 +253,8 @@ export class RemplacementsComponent implements OnInit {
   }
 
   deleteRemplacement(remplacement: Remplacement): void {
-    const remplacantName = this.getCollaborateurName(remplacement.collaborateur_remplacant_id);
-    const remplaceName = this.getCollaborateurName(remplacement.collaborateur_remplace_id);
+    const remplacantName = this.getCollaborateurName(remplacement.remplacant_id);
+    const remplaceName = this.getCollaborateurName(remplacement.remplace_id);
     
     if (confirm(`Êtes-vous sûr de vouloir supprimer le remplacement de ${remplaceName} par ${remplacantName} ?`)) {
       this.remplacementService.deleteRemplacement(remplacement.id).subscribe({

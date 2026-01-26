@@ -145,7 +145,8 @@ export class EntreprisesComponent implements OnInit {
 
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(EntrepriseDialogComponent, {
-      width: '700px',
+      width: '80%',
+      maxWidth: '800px',
       data: { isEditMode: false }
     });
 
@@ -163,7 +164,8 @@ export class EntreprisesComponent implements OnInit {
 
   editEntreprise(entreprise: Entreprise): void {
     const dialogRef = this.dialog.open(EntrepriseDialogComponent, {
-      width: '700px',
+      width: '80%',
+      maxWidth: '800px',
       data: { entreprise, isEditMode: true }
     });
 
@@ -238,5 +240,15 @@ export class EntreprisesComponent implements OnInit {
         }
       });
     }
+  }
+
+  getLogoUrl(logoUrl: string | undefined): string {
+    if (!logoUrl) return '';
+    // Si l'URL commence déjà par http, la retourner telle quelle
+    if (logoUrl.startsWith('http')) {
+      return logoUrl;
+    }
+    // Sinon, construire l'URL complète avec le backend
+    return `http://localhost:5000${logoUrl}`;
   }
 }

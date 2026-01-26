@@ -74,18 +74,25 @@ export class UsersComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
+    console.log('[DEBUG] Chargement des données utilisateurs...');
     
     // Charger les utilisateurs et entreprises en parallèle
     Promise.all([
       this.apiService.get<{users: User[]}>('/admin/users').toPromise(),
       this.entrepriseService.getEntreprises().toPromise()
     ]).then(([usersResponse, entreprisesResponse]) => {
+      console.log('[DEBUG] Réponse utilisateurs:', usersResponse);
+      console.log('[DEBUG] Réponse entreprises:', entreprisesResponse);
+      
       this.users = usersResponse?.users || [];
       this.entreprises = entreprisesResponse?.entreprises || [];
       this.applyFilters();
       this.isLoading = false;
+      
+      console.log(`[DEBUG] ${this.users.length} utilisateurs chargés`);
     }).catch(error => {
-      console.error('Erreur lors du chargement:', error);
+      console.error('[ERROR] Erreur lors du chargement:', error);
+      console.error('[ERROR] Détails de l\'erreur:', error.error);
       this.snackBar.open('Erreur lors du chargement des données', 'Fermer', {
         duration: 3000,
         panelClass: ['error-snackbar']

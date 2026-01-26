@@ -21,8 +21,16 @@ export class EntrepriseService {
     return this.apiService.post<{entreprise: Entreprise, message: string}>('/entreprises', entreprise);
   }
 
+  createEntrepriseWithLogo(formData: FormData): Observable<{entreprise: Entreprise, message: string}> {
+    return this.apiService.postFormData<{entreprise: Entreprise, message: string}>('/entreprises', formData);
+  }
+
   updateEntreprise(id: number, entreprise: Partial<Entreprise>): Observable<{entreprise: Entreprise, message: string}> {
     return this.apiService.put<{entreprise: Entreprise, message: string}>(`/entreprises/${id}`, entreprise);
+  }
+
+  updateEntrepriseWithLogo(id: number, formData: FormData): Observable<{entreprise: Entreprise, message: string}> {
+    return this.apiService.putFormData<{entreprise: Entreprise, message: string}>(`/entreprises/${id}`, formData);
   }
 
   deleteEntreprise(id: number): Observable<{message: string}> {

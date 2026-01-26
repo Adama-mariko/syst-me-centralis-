@@ -10,8 +10,7 @@ export class RemplacementService {
   constructor(private apiService: ApiService) {}
 
   getRemplacements(): Observable<{remplacements: Remplacement[]}> {
-    // Retourner des données vides pour l'instant
-    return of({ remplacements: [] });
+    return this.apiService.get<{remplacements: Remplacement[]}>('/remplacements');
   }
 
   getRemplacement(id: number): Observable<{remplacement: Remplacement}> {
@@ -19,6 +18,7 @@ export class RemplacementService {
   }
 
   createRemplacement(remplacement: Partial<Remplacement>): Observable<{remplacement: Remplacement, message: string}> {
+    console.log('[DEBUG] Service createRemplacement appelé avec:', remplacement);
     return this.apiService.post<{remplacement: Remplacement, message: string}>('/remplacements', remplacement);
   }
 
