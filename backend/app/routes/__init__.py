@@ -11,6 +11,7 @@ from .notifications import notifications_bp
 from .rapports import rapports_bp
 from .competences import competences_bp
 from .tracabilite import tracabilite_bp
+from .scheduler import scheduler_bp
 
 def register_blueprints(app):
     """Register all blueprints with the Flask app"""
@@ -27,3 +28,4 @@ def register_blueprints(app):
     app.register_blueprint(rapports_bp, url_prefix='/api')
     app.register_blueprint(competences_bp, url_prefix='/api')
     app.register_blueprint(tracabilite_bp, url_prefix='/api')
+    app.register_blueprint(scheduler_bp, url_prefix='/api')

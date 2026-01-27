@@ -38,6 +38,10 @@ def create_app():
     from app.routes import register_blueprints
     register_blueprints(app)
     
+    # Initialiser le scheduler pour les tâches automatiques
+    from app.services.scheduler_service import SchedulerService
+    SchedulerService.init_scheduler(app)
+    
     return app
 
 if __name__ == '__main__':

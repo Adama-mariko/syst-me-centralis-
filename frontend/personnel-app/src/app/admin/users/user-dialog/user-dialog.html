@@ -10,6 +10,39 @@
       <div class="form-section">
         <h3>Informations personnelles</h3>
         
+        <!-- Avatar -->
+        <div class="avatar-section">
+          <div class="avatar-preview">
+            <img *ngIf="avatarPreview" 
+                 [src]="avatarPreview" 
+                 alt="Avatar" 
+                 class="avatar-image">
+            <div *ngIf="!avatarPreview" class="avatar-placeholder">
+              <mat-icon>account_circle</mat-icon>
+            </div>
+          </div>
+          <div class="avatar-actions">
+            <input type="file" 
+                   #avatarInput 
+                   accept="image/*" 
+                   (change)="onAvatarSelected($event)"
+                   style="display: none">
+            <button mat-raised-button 
+                    type="button"
+                    (click)="avatarInput.click()">
+              <mat-icon>photo_camera</mat-icon>
+              {{ avatarPreview ? 'Changer l\'avatar' : 'Ajouter un avatar' }}
+            </button>
+            <button mat-button 
+                    type="button"
+                    *ngIf="avatarPreview && avatarFile"
+                    (click)="removeAvatar()">
+              <mat-icon>delete</mat-icon>
+              Supprimer
+            </button>
+          </div>
+        </div>
+
         <div class="form-row">
           <mat-form-field appearance="outline">
             <mat-label>Prénom *</mat-label>

@@ -137,3 +137,101 @@ def get_statistiques_notifications():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@notifications_bp.route('/notifications/<int:notification_id>/marquer-lu', methods=['PUT'])
+@jwt_required()
+def marquer_notification_lue(notification_id):
+    """Marquer une notification comme lue"""
+    try:
+        current_user_id = get_jwt_identity()
+        success = NotificationService.marquer_comme_lu(notification_id, current_user_id)
+        
+        if success:
+            return jsonify({'message': 'Notification marquée comme lue'})
+        else:
+            return jsonify({'error': 'Notification non trouvée ou accès refusé'}), 404
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@notifications_bp.route('/notifications/marquer-toutes-lues', methods=['PUT'])
+@jwt_required()
+def marquer_toutes_notifications_lues():
+    """Marquer toutes les notifications comme lues"""
+    try:
+        current_user_id = get_jwt_identity()
+        success = NotificationService.marquer_toutes_comme_lues(current_user_id)
+        
+        if success:
+            return jsonify({'message': 'Toutes les notifications ont été marquées comme lues'})
+        else:
+            return jsonify({'error': 'Erreur lors du marquage'}), 500
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@notifications_bp.route('/notifications/non-lues', methods=['GET'])
+@jwt_required()
+def get_notifications_non_lues():
+    """Récupérer les notifications non lues de l'utilisateur"""
+    try:
+        current_user_id = get_jwt_identity()
+        notifications = NotificationService.get_notifications_non_lues(current_user_id)
+        
+        return jsonify({
+            'notifications': [notif.to_dict() for notif in notifications],
+            'total': len(notifications)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@notifications_bp.route('/notifications/count-non-lues', methods=['GET'])
+@jwt_required()
+def count_notifications_non_lues():
+    """Compter les notifications non lues"""
+    try:
+        current_user_id = get_jwt_identity()
+        count = Notification.query.filter_by(
+            destinataire_user_id=current_user_id,
+            lu=False
+        ).count()
+        
+        return jsonify({'count': count})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@notifications_bp.route('/notifications/test-email', methods=['POST'])
+@jwt_required()
+@role_required([UserRole.SUPER_ADMIN, UserRole.ADMIN])
+def test_email():
+    """Tester l'envoi d'email (admin seulement)"""
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        sujet = data.get('sujet', 'Test Email SMTP')
+        message = data.get('message', 'Ceci est un email de test du système de gestion de personnel.')
+        
+        if not email:
+            return jsonify({'error': 'Email requis'}), 400
+        
+        # Créer et envoyer la notification
+        notification = NotificationService.creer_notification(
+            TypeNotification.AUTRE,
+            None,
+            email,
+            sujet,
+            message
+        )
+        
+        return jsonify({
+            'message': f'Email de test envoyé à {email}',
+            'notification_id': notification.id,
+            'statut': notification.statut.value
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

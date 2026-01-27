@@ -9,6 +9,7 @@ import { AbsencesComponent } from './admin/absences/absences';
 import { RapportsComponent } from './admin/rapports/rapports';
 import { PlacementsComponent } from './admin/placements/placements';
 import { RemplacementsComponent } from './admin/remplacements/remplacements';
+import { TracabiliteComponent } from './admin/tracabilite/tracabilite';
 import { ValidationsComponent } from './rh/validations/validations';
 import { authGuard, adminGuard, rhGuard } from './core/guards/auth.guard';
 
@@ -32,7 +33,8 @@ export const routes: Routes = [
           { path: 'rapports', component: RapportsComponent },
           { path: 'placements', component: PlacementsComponent },
           { path: 'remplacements', component: RemplacementsComponent },
-          { path: 'mouvements', component: DashboardComponent }, // TODO: Créer le composant
+          { path: 'tracabilite', component: TracabiliteComponent },
+          { path: 'mouvements', component: TracabiliteComponent }, // Alias
           { path: 'notifications', component: DashboardComponent }, // TODO: Créer le composant
           { path: 'competences', component: DashboardComponent }, // TODO: Créer le composant
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
@@ -48,6 +50,7 @@ export const routes: Routes = [
           { path: 'absences', component: AbsencesComponent },
           { path: 'placements', component: PlacementsComponent },
           { path: 'validations', component: ValidationsComponent },
+          { path: 'tracabilite', component: TracabiliteComponent },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
       }

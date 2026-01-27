@@ -1,0 +1,238 @@
+.tracabilite-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  mat-card {
+    mat-card-header {
+      margin-bottom: 20px;
+
+      mat-card-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 24px;
+        font-weight: 500;
+
+        mat-icon {
+          font-size: 28px;
+          width: 28px;
+          height: 28px;
+        }
+      }
+    }
+  }
+}
+
+.filters-section {
+  background: #f5f5f5;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+
+  .filters-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+
+    .filter-field {
+      width: 100%;
+    }
+  }
+
+  .actions-row {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+
+    button {
+      mat-icon {
+        margin-right: 5px;
+      }
+    }
+  }
+}
+
+.results-info {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #e3f2fd;
+  border-radius: 4px;
+
+  p {
+    margin: 0;
+    font-weight: 500;
+    color: #1976d2;
+  }
+}
+
+.mouvements-list {
+  .mouvement-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-color: #2196F3;
+    }
+
+    .mouvement-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f0f0f0;
+
+      .mouvement-type {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        mat-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+        }
+
+        .type-label {
+          font-weight: 600;
+          font-size: 16px;
+        }
+      }
+
+      .mouvement-date {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #757575;
+        font-size: 14px;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+
+    .mouvement-content {
+      .description {
+        margin: 0 0 12px 0;
+        font-size: 15px;
+        color: #424242;
+        line-height: 1.5;
+      }
+
+      .mouvement-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+
+        .detail-item {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          padding: 6px 12px;
+          background: #f5f5f5;
+          border-radius: 16px;
+          font-size: 14px;
+
+          mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            color: #757575;
+          }
+
+          span {
+            color: #616161;
+          }
+        }
+      }
+    }
+
+    .mouvement-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #f0f0f0;
+    }
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: #757575;
+
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    p {
+      font-size: 18px;
+      margin: 0;
+    }
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+
+  mat-spinner {
+    margin-bottom: 20px;
+  }
+
+  p {
+    color: #757575;
+    font-size: 16px;
+  }
+}
+
+mat-paginator {
+  margin-top: 20px;
+  background: transparent;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .tracabilite-container {
+    padding: 10px;
+  }
+
+  .filters-section {
+    .filters-row {
+      grid-template-columns: 1fr;
+    }
+
+    .actions-row {
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+
+  .mouvement-card {
+    .mouvement-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+  }
+}

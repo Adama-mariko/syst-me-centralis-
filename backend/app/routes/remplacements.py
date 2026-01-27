@@ -2,9 +2,13 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from app.models.remplacement import Remplacement, TypeRemplacement, StatutRemplacement
 from app.models.collaborateur import Collaborateur
+from app.models.mouvement import TypeMouvement
 from app.extensions import db
 from app.services.auth_service import AuthService
+from app.services.mouvement_service import MouvementService
+from app.services.notification_service import NotificationService
 from datetime import datetime
+import json
 
 remplacements_bp = Blueprint('remplacements', __name__)
 
@@ -132,6 +136,31 @@ def create_remplacement():
         db.session.commit()
         print(f"[DEBUG] Transaction commitée avec succès")
         
+        # Enregistrer le mouvement de traçabilité
+        try:
+            MouvementService.enregistrer_mouvement(
+                type_mouvement=TypeMouvement.REMPLACEMENT_CREE,
+                description=f"Remplacement créé: {remplacant.prenom} {remplacant.nom} remplace {remplace.prenom} {remplace.nom}",
+                user_id=current_user.id,
+                collaborateur_id=data['remplace_id'],
+                remplacement_id=remplacement.id,
+                donnees_apres={
+                    'remplace': f"{remplace.prenom} {remplace.nom}",
+                    'remplacant': f"{remplacant.prenom} {remplacant.nom}",
+                    'type': type_remplacement.value,
+                    'date_debut': date_debut.isoformat(),
+                    'date_fin': date_fin.isoformat()
+                }
+            )
+        except Exception as e:
+            print(f"[WARNING] Erreur lors de l'enregistrement du mouvement: {e}")
+        
+        # Envoyer notification au remplaçant
+        try:
+            NotificationService.notifier_remplacement_cree(remplacement)
+        except Exception as e:
+            print(f"[WARNING] Erreur lors de l'envoi de la notification: {e}")
+        
         return jsonify({
             'message': 'Remplacement créé avec succès',
             'remplacement': remplacement.to_dict()
@@ -179,6 +208,14 @@ def update_remplacement(remplacement_id):
         
         data = request.get_json()
         
+        # Sauvegarder l'état avant modification
+        donnees_avant = {
+            'type': remplacement.type_remplacement.value,
+            'date_debut': remplacement.date_debut.isoformat(),
+            'date_fin': remplacement.date_fin.isoformat(),
+            'statut': remplacement.statut.value
+        }
+        
         # Mise à jour des champs
         if 'type_remplacement' in data:
             remplacement.type_remplacement = TypeRemplacement(data['type_remplacement'])
@@ -195,6 +232,27 @@ def update_remplacement(remplacement_id):
         
         db.session.commit()
         
+        # Enregistrer le mouvement de traçabilité
+        try:
+            donnees_apres = {
+                'type': remplacement.type_remplacement.value,
+                'date_debut': remplacement.date_debut.isoformat(),
+                'date_fin': remplacement.date_fin.isoformat(),
+                'statut': remplacement.statut.value
+            }
+            
+            MouvementService.enregistrer_mouvement(
+                type_mouvement=TypeMouvement.REMPLACEMENT_MODIFIE,
+                description=f"Remplacement modifié: {remplacement.remplacant.prenom} {remplacement.remplacant.nom} remplace {remplacement.remplace.prenom} {remplacement.remplace.nom}",
+                user_id=current_user.id,
+                collaborateur_id=remplacement.remplace_id,
+                remplacement_id=remplacement.id,
+                donnees_avant=donnees_avant,
+                donnees_apres=donnees_apres
+            )
+        except Exception as e:
+            print(f"[WARNING] Erreur lors de l'enregistrement du mouvement: {e}")
+        
         return jsonify({
             'message': 'Remplacement modifié avec succès',
             'remplacement': remplacement.to_dict()
@@ -203,3 +261,49 @@ def update_remplacement(remplacement_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': 'Erreur lors de la modification', 'error': str(e)}), 500
+
+
+@remplacements_bp.route('/<int:remplacement_id>', methods=['DELETE'])
+@jwt_required()
+def delete_remplacement(remplacement_id):
+    """Suppression d'un remplacement"""
+    try:
+        current_user = AuthService.get_current_user()
+        remplacement = Remplacement.query.get_or_404(remplacement_id)
+        
+        # Vérification des permissions pour RH
+        if current_user.role.value == 'rh_entreprise':
+            if remplacement.remplace.entreprise_actuelle_id != current_user.entreprise_id:
+                return jsonify({'message': 'Accès non autorisé'}), 403
+        
+        # Sauvegarder les informations avant suppression
+        remplacement_info = {
+            'remplace': f"{remplacement.remplace.prenom} {remplacement.remplace.nom}",
+            'remplacant': f"{remplacement.remplacant.prenom} {remplacement.remplacant.nom}",
+            'type': remplacement.type_remplacement.value,
+            'date_debut': remplacement.date_debut.isoformat(),
+            'date_fin': remplacement.date_fin.isoformat()
+        }
+        collaborateur_id = remplacement.remplace_id
+        
+        # Supprimer le remplacement
+        db.session.delete(remplacement)
+        db.session.commit()
+        
+        # Enregistrer le mouvement de traçabilité
+        try:
+            MouvementService.enregistrer_mouvement(
+                type_mouvement=TypeMouvement.REMPLACEMENT_SUPPRIME,
+                description=f"Remplacement supprimé: {remplacement_info['remplacant']} remplaçait {remplacement_info['remplace']}",
+                user_id=current_user.id,
+                collaborateur_id=collaborateur_id,
+                donnees_avant=remplacement_info
+            )
+        except Exception as e:
+            print(f"[WARNING] Erreur lors de l'enregistrement du mouvement: {e}")
+        
+        return jsonify({'message': 'Remplacement supprimé avec succès'}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': 'Erreur lors de la suppression', 'error': str(e)}), 500

@@ -39,6 +39,67 @@ mat-dialog-content {
       border-bottom: 2px solid #e5e7eb;
     }
 
+    // Section avatar
+    .avatar-section {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: #f9fafb;
+      border-radius: 12px;
+
+      .avatar-preview {
+        flex-shrink: 0;
+
+        .avatar-image {
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 3px solid #e5e7eb;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .avatar-placeholder {
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          background: #e5e7eb;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 3px solid #d1d5db;
+
+          mat-icon {
+            font-size: 60px;
+            width: 60px;
+            height: 60px;
+            color: #9ca3af;
+          }
+        }
+      }
+
+      .avatar-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        button {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          justify-content: center;
+
+          mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+    }
+
     .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;

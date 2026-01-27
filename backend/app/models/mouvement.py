@@ -3,14 +3,39 @@ from datetime import datetime
 from enum import Enum
 
 class TypeMouvement(Enum):
-    PLACEMENT = "placement"
-    REMPLACEMENT = "remplacement"
-    VALIDATION = "validation"
-    MODIFICATION = "modification"
-    SUPPRESSION = "suppression"
+    # Placements
+    PLACEMENT_CREE = "placement_cree"
+    PLACEMENT_MODIFIE = "placement_modifie"
+    PLACEMENT_VALIDE = "placement_valide"
+    PLACEMENT_SUPPRIME = "placement_supprime"
+    
+    # Remplacements
+    REMPLACEMENT_CREE = "remplacement_cree"
+    REMPLACEMENT_MODIFIE = "remplacement_modifie"
+    REMPLACEMENT_SUPPRIME = "remplacement_supprime"
+    
+    # Absences
     ABSENCE_DEMANDE = "absence_demande"
     ABSENCE_APPROUVE = "absence_approuve"
     ABSENCE_REFUSE = "absence_refuse"
+    
+    # Collaborateurs
+    COLLABORATEUR_CREE = "collaborateur_cree"
+    COLLABORATEUR_MODIFIE = "collaborateur_modifie"
+    COLLABORATEUR_STATUT_CHANGE = "collaborateur_statut_change"
+    
+    # Entreprises
+    ENTREPRISE_CREE = "entreprise_cree"
+    ENTREPRISE_MODIFIE = "entreprise_modifie"
+    
+    # Utilisateurs
+    UTILISATEUR_CREE = "utilisateur_cree"
+    UTILISATEUR_MODIFIE = "utilisateur_modifie"
+    UTILISATEUR_ROLE_CHANGE = "utilisateur_role_change"
+    
+    # Compétences
+    COMPETENCE_AJOUT = "competence_ajout"
+    COMPETENCE_MODIFICATION = "competence_modification"
 
 class Mouvement(db.Model):
     __tablename__ = 'mouvements'

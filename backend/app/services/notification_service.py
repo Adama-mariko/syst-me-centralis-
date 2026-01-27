@@ -194,3 +194,163 @@ class NotificationService:
         
         for notification in notifications:
             NotificationService.envoyer_notification(notification.id)
+
+    @staticmethod
+    def notifier_collaborateur_cree(collaborateur, created_by_user):
+        """Notifier un collaborateur qu'il a été créé dans le système"""
+        NotificationService.creer_notification(
+            TypeNotification.AUTRE,
+            None,  # Pas d'utilisateur dans l'app
+            collaborateur.email,
+            "Bienvenue dans le système de gestion de personnel",
+            f"Bonjour {collaborateur.prenom} {collaborateur.nom},\n\n"
+            f"Vous avez été ajouté au système de gestion de personnel par {created_by_user.prenom} {created_by_user.nom}.\n\n"
+            f"Informations:\n"
+            f"- Poste: {collaborateur.poste}\n"
+            f"- Date d'embauche: {collaborateur.date_embauche}\n"
+            f"- Statut: {collaborateur.statut.value}\n\n"
+            f"Vous recevrez des notifications par email pour toutes les actions vous concernant.\n\n"
+            f"Cordialement,\n"
+            f"L'équipe de gestion"
+        )
+    
+    @staticmethod
+    def notifier_collaborateur_modifie(collaborateur, modified_by_user, changements):
+        """Notifier un collaborateur que ses informations ont été modifiées"""
+        NotificationService.creer_notification(
+            TypeNotification.AUTRE,
+            None,
+            collaborateur.email,
+            "Vos informations ont été mises à jour",
+            f"Bonjour {collaborateur.prenom} {collaborateur.nom},\n\n"
+            f"Vos informations ont été mises à jour par {modified_by_user.prenom} {modified_by_user.nom}.\n\n"
+            f"Changements effectués:\n{changements}\n\n"
+            f"Cordialement,\n"
+            f"L'équipe de gestion"
+        )
+    
+    @staticmethod
+    def notifier_placement_au_collaborateur(placement):
+        """Notifier le collaborateur d'un nouveau placement"""
+        NotificationService.creer_notification(
+            TypeNotification.PLACEMENT_CREE,
+            None,
+            placement.collaborateur.email,
+            f"Nouveau placement proposé - {placement.entreprise.nom}",
+            f"Bonjour {placement.collaborateur.prenom} {placement.collaborateur.nom},\n\n"
+            f"Un nouveau placement vous a été proposé:\n\n"
+            f"- Entreprise: {placement.entreprise.nom}\n"
+            f"- Poste: {placement.poste_demande}\n"
+            f"- Date de début: {placement.date_debut}\n"
+            f"- Date de fin: {placement.date_fin if placement.date_fin else 'Non définie'}\n"
+            f"- Salaire proposé: {placement.salaire_propose} FCFA" if placement.salaire_propose else "",
+            f"\n\nCe placement est en attente de validation par les RH de l'entreprise.\n\n"
+            f"Cordialement,\n"
+            f"L'équipe de gestion",
+            placement_id=placement.id
+        )
+    
+    @staticmethod
+    def notifier_remplacement_au_remplace(remplacement):
+        """Notifier le collaborateur remplacé"""
+        NotificationService.creer_notification(
+            TypeNotification.REMPLACEMENT_CREE,
+            None,
+            remplacement.remplace.email,
+            f"Information: Remplacement prévu",
+            f"Bonjour {remplacement.remplace.prenom} {remplacement.remplace.nom},\n\n"
+            f"Un remplacement a été organisé pour votre absence:\n\n"
+            f"- Remplaçant: {remplacement.remplacant.prenom} {remplacement.remplacant.nom}\n"
+            f"- Type: {remplacement.type_remplacement.value}\n"
+            f"- Du {remplacement.date_debut} au {remplacement.date_fin}\n"
+            f"- Motif: {remplacement.motif or 'Non spécifié'}\n\n"
+            f"Cordialement,\n"
+            f"L'équipe de gestion",
+            remplacement_id=remplacement.id
+        )
+    
+    @staticmethod
+    def notifier_placement_expire_bientot(placement, jours_restants):
+        """Notifier qu'un placement expire bientôt"""
+        from app.models.user import User, UserRole
+        
+        # Notifier les admins
+        admins = User.query.filter(
+            User.role.in_([UserRole.ADMIN, UserRole.SUPER_ADMIN])
+        ).all()
+        
+        for admin in admins:
+            NotificationService.creer_notification(
+                TypeNotification.PLACEMENT_EXPIRE_BIENTOT,
+                admin.id,
+                admin.email,
+                f"Placement expire dans {jours_restants} jours",
+                f"Le placement de {placement.collaborateur.prenom} {placement.collaborateur.nom} "
+                f"chez {placement.entreprise.nom} expire dans {jours_restants} jours "
+                f"(Date de fin: {placement.date_fin}). "
+                f"Pensez à renouveler ou créer un nouveau placement.",
+                placement_id=placement.id
+            )
+    
+    @staticmethod
+    def notifier_conflit_detecte(user_id, message, placement_id=None):
+        """Notifier la détection d'un conflit"""
+        user = User.query.get(user_id)
+        if user:
+            NotificationService.creer_notification(
+                TypeNotification.CONFLIT_DETECTE,
+                user_id,
+                user.email,
+                "Conflit détecté",
+                message,
+                placement_id=placement_id
+            )
+    
+    @staticmethod
+    def marquer_comme_lu(notification_id, user_id):
+        """Marquer une notification comme lue"""
+        try:
+            notification = Notification.query.get(notification_id)
+            if notification and notification.destinataire_user_id == user_id:
+                notification.lu = True
+                notification.date_lecture = datetime.utcnow()
+                db.session.commit()
+                return True
+            return False
+        except Exception as e:
+            db.session.rollback()
+            return False
+    
+    @staticmethod
+    def marquer_toutes_comme_lues(user_id):
+        """Marquer toutes les notifications d'un utilisateur comme lues"""
+        try:
+            notifications = Notification.query.filter_by(
+                destinataire_user_id=user_id,
+                lu=False
+            ).all()
+            
+            for notification in notifications:
+                notification.lu = True
+                notification.date_lecture = datetime.utcnow()
+            
+            db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            return False
+    
+    @staticmethod
+    def get_notifications_non_lues(user_id):
+        """Récupérer les notifications non lues d'un utilisateur"""
+        return Notification.query.filter_by(
+            destinataire_user_id=user_id,
+            lu=False
+        ).order_by(Notification.created_at.desc()).all()
+    
+    @staticmethod
+    def get_notifications_utilisateur(user_id, limit=50):
+        """Récupérer toutes les notifications d'un utilisateur"""
+        return Notification.query.filter_by(
+            destinataire_user_id=user_id
+        ).order_by(Notification.created_at.desc()).limit(limit).all()

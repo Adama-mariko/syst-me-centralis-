@@ -1,0 +1,130 @@
+<div class="tracabilite-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>history</mat-icon>
+        Traçabilité des Mouvements
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Filtres -->
+      <div class="filters-section">
+        <div class="filters-row">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Rechercher</mat-label>
+            <input matInput [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Description...">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Type de mouvement</mat-label>
+            <mat-select [(ngModel)]="selectedType" (ngModelChange)="applyFilters()">
+              <mat-option value="">Tous</mat-option>
+              <mat-option *ngFor="let type of typesMovements" [value]="type.value">
+                <mat-icon [style.color]="type.color">{{ type.icon }}</mat-icon>
+                {{ type.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Collaborateur</mat-label>
+            <mat-select [(ngModel)]="selectedCollaborateur" (ngModelChange)="applyFilters()">
+              <mat-option value="">Tous</mat-option>
+              <mat-option *ngFor="let collab of collaborateurs" [value]="collab.id">
+                {{ collab.prenom }} {{ collab.nom }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Entreprise</mat-label>
+            <mat-select [(ngModel)]="selectedEntreprise" (ngModelChange)="applyFilters()">
+              <mat-option value="">Toutes</mat-option>
+              <mat-option *ngFor="let entreprise of entreprises" [value]="entreprise.id">
+                {{ entreprise.nom }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="actions-row">
+          <button mat-raised-button (click)="clearFilters()">
+            <mat-icon>clear</mat-icon>
+            Réinitialiser
+          </button>
+          <button mat-raised-button color="primary" (click)="exportToCSV()">
+            <mat-icon>download</mat-icon>
+            Exporter CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Résultats -->
+      <div class="results-info">
+        <p>{{ totalItems }} mouvement(s) trouvé(s)</p>
+      </div>
+
+      <!-- Liste des mouvements -->
+      <div class="mouvements-list" *ngIf="!isLoading">
+        <div class="mouvement-card" *ngFor="let mouvement of paginatedMouvements">
+          <div class="mouvement-header">
+            <div class="mouvement-type">
+              <mat-icon [style.color]="getTypeInfo(mouvement.type_mouvement).color">
+                {{ getTypeInfo(mouvement.type_mouvement).icon }}
+              </mat-icon>
+              <span class="type-label">{{ getTypeInfo(mouvement.type_mouvement).label }}</span>
+            </div>
+            <div class="mouvement-date">
+              <mat-icon>schedule</mat-icon>
+              {{ formatDate(mouvement.created_at) }}
+            </div>
+          </div>
+
+          <div class="mouvement-content">
+            <p class="description">{{ mouvement.description }}</p>
+            
+            <div class="mouvement-details">
+              <div class="detail-item" *ngIf="mouvement.collaborateur_id">
+                <mat-icon>person</mat-icon>
+                <span>{{ getCollaborateurName(mouvement.collaborateur_id) }}</span>
+              </div>
+              <div class="detail-item" *ngIf="mouvement.entreprise_id">
+                <mat-icon>business</mat-icon>
+                <span>{{ getEntrepriseName(mouvement.entreprise_id) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mouvement-actions">
+            <button mat-icon-button (click)="viewDetails(mouvement)" matTooltip="Voir les détails">
+              <mat-icon>visibility</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="no-results" *ngIf="paginatedMouvements.length === 0">
+          <mat-icon>info</mat-icon>
+          <p>Aucun mouvement trouvé</p>
+        </div>
+      </div>
+
+      <!-- Chargement -->
+      <div class="loading-container" *ngIf="isLoading">
+        <mat-spinner></mat-spinner>
+        <p>Chargement des mouvements...</p>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator
+        *ngIf="!isLoading && totalItems > 0"
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[25, 50, 100, 200]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

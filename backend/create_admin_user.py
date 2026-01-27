@@ -3,7 +3,7 @@
 Script pour créer un utilisateur admin par défaut
 """
 
-from app import create_app
+from main import create_app
 from app.extensions import db
 from app.models.user import User, UserRole
 from werkzeug.security import generate_password_hash

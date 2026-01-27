@@ -47,6 +47,10 @@ export class UserDialogComponent implements OnInit {
   hideConfirmPassword = true;
   showEntrepriseField = false;
   entreprises: Entreprise[] = [];
+  
+  // Avatar
+  avatarFile: File | null = null;
+  avatarPreview: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -125,8 +129,50 @@ export class UserDialogComponent implements OnInit {
       is_active: user.is_active
     });
 
+    // Charger l'avatar existant
+    if (user.avatar_url) {
+      this.avatarPreview = user.avatar_url;
+    }
+
     // Déclencher la logique d'affichage du champ entreprise
     this.onRoleChange();
+  }
+
+  onAvatarSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      // Vérifier le type de fichier
+      if (!file.type.startsWith('image/')) {
+        this.snackBar.open('Veuillez sélectionner une image', 'Fermer', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+        return;
+      }
+
+      // Vérifier la taille (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        this.snackBar.open('L\'image ne doit pas dépasser 5MB', 'Fermer', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+        return;
+      }
+
+      this.avatarFile = file;
+
+      // Créer un aperçu
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.avatarPreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeAvatar(): void {
+    this.avatarFile = null;
+    this.avatarPreview = null;
   }
 
   onRoleChange(): void {
@@ -164,12 +210,17 @@ export class UserDialogComponent implements OnInit {
 
       request.subscribe({
         next: (response) => {
-          this.isLoading = false;
-          this.snackBar.open(response.message, 'Fermer', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
-          this.dialogRef.close(response.user);
+          // Si un avatar a été sélectionné, l'uploader séparément
+          if (this.avatarFile) {
+            this.uploadAvatar(response.user.id);
+          } else {
+            this.isLoading = false;
+            this.snackBar.open(response.message, 'Fermer', {
+              duration: 3000,
+              panelClass: ['success-snackbar']
+            });
+            this.dialogRef.close(response.user);
+          }
         },
         error: (error) => {
           this.isLoading = false;
@@ -181,6 +232,33 @@ export class UserDialogComponent implements OnInit {
         }
       });
     }
+  }
+
+  private uploadAvatar(userId: number): void {
+    const formData = new FormData();
+    formData.append('avatar', this.avatarFile!);
+
+    this.apiService.post<{user: User, message: string}>(`/admin/users/${userId}/avatar`, formData).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        this.snackBar.open('Utilisateur et avatar sauvegardés avec succès', 'Fermer', {
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+        // Mettre à jour l'aperçu avec la nouvelle URL
+        this.avatarPreview = response.user.avatar_url || null;
+        this.dialogRef.close(response.user);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.snackBar.open('Utilisateur créé mais erreur lors de l\'upload de l\'avatar', 'Fermer', {
+          duration: 4000,
+          panelClass: ['error-snackbar']
+        });
+        // Fermer quand même le dialog car l'utilisateur est créé
+        this.dialogRef.close();
+      }
+    });
   }
 
   onCancel(): void {

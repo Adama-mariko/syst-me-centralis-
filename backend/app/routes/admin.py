@@ -67,6 +67,11 @@ def create_user():
         if User.query.filter_by(email=data['email']).first():
             return jsonify({'message': 'Cet email est déjà utilisé'}), 400
         
+        # Récupérer l'utilisateur qui crée (admin)
+        from flask_jwt_extended import get_jwt_identity
+        current_user_id = get_jwt_identity()
+        created_by_user = User.query.get(current_user_id)
+        
         # Création de l'utilisateur
         user = User(
             email=data['email'],
@@ -79,6 +84,37 @@ def create_user():
         
         db.session.add(user)
         db.session.commit()
+        
+        # Envoyer un email de bienvenue au nouvel utilisateur
+        from app.services.notification_service import NotificationService
+        from app.models.notification import TypeNotification
+        
+        try:
+            role_label = {
+                'admin': 'Administrateur',
+                'rh_entreprise': 'RH Entreprise',
+                'super_admin': 'Super Administrateur'
+            }.get(user.role.value, user.role.value)
+            
+            NotificationService.creer_notification(
+                TypeNotification.AUTRE,
+                user.id,
+                user.email,
+                "Bienvenue dans le système de gestion de personnel",
+                f"Bonjour {user.prenom} {user.nom},\n\n"
+                f"Votre compte utilisateur a été créé avec succès par {created_by_user.prenom} {created_by_user.nom}.\n\n"
+                f"Informations de connexion:\n"
+                f"- Email: {user.email}\n"
+                f"- Rôle: {role_label}\n"
+                f"- Mot de passe: Le mot de passe que vous avez reçu séparément\n\n"
+                f"Vous pouvez vous connecter à l'adresse: http://localhost:4200\n\n"
+                f"Pour des raisons de sécurité, nous vous recommandons de changer votre mot de passe lors de votre première connexion.\n\n"
+                f"Cordialement,\n"
+                f"L'équipe de gestion"
+            )
+        except Exception as email_error:
+            print(f"Erreur lors de l'envoi de l'email de bienvenue: {email_error}")
+            # Ne pas bloquer la création si l'email échoue
         
         return jsonify({
             'message': 'Utilisateur créé avec succès',
@@ -97,28 +133,75 @@ def update_user(user_id):
         user = User.query.get_or_404(user_id)
         data = request.get_json()
         
+        # Récupérer l'utilisateur qui modifie
+        from flask_jwt_extended import get_jwt_identity
+        current_user_id = get_jwt_identity()
+        modified_by_user = User.query.get(current_user_id)
+        
+        # Suivre les changements pour l'email
+        changements = []
+        
         # Mise à jour des champs
-        if 'email' in data:
+        if 'email' in data and data['email'] != user.email:
             # Vérifier l'unicité de l'email
             existing_user = User.query.filter_by(email=data['email']).first()
             if existing_user and existing_user.id != user_id:
                 return jsonify({'message': 'Cet email est déjà utilisé'}), 400
+            changements.append(f"- Email: {user.email} → {data['email']}")
             user.email = data['email']
         
-        if 'nom' in data:
+        if 'nom' in data and data['nom'] != user.nom:
+            changements.append(f"- Nom: {user.nom} → {data['nom']}")
             user.nom = data['nom']
-        if 'prenom' in data:
+            
+        if 'prenom' in data and data['prenom'] != user.prenom:
+            changements.append(f"- Prénom: {user.prenom} → {data['prenom']}")
             user.prenom = data['prenom']
-        if 'role' in data:
+            
+        if 'role' in data and data['role'] != user.role.value:
+            old_role = user.role.value
             user.role = UserRole(data['role'])
+            role_labels = {
+                'admin': 'Administrateur',
+                'rh_entreprise': 'RH Entreprise',
+                'super_admin': 'Super Administrateur'
+            }
+            changements.append(f"- Rôle: {role_labels.get(old_role, old_role)} → {role_labels.get(data['role'], data['role'])}")
+            
         if 'entreprise_id' in data:
             user.entreprise_id = data['entreprise_id']
-        if 'is_active' in data:
+            
+        if 'is_active' in data and data['is_active'] != user.is_active:
+            changements.append(f"- Statut: {'Actif' if user.is_active else 'Inactif'} → {'Actif' if data['is_active'] else 'Inactif'}")
             user.is_active = data['is_active']
+            
         if 'password' in data:
             user.set_password(data['password'])
+            changements.append("- Mot de passe modifié")
         
         db.session.commit()
+        
+        # Envoyer un email si des changements ont été effectués
+        if changements:
+            from app.services.notification_service import NotificationService
+            from app.models.notification import TypeNotification
+            
+            try:
+                changements_text = "\n".join(changements)
+                NotificationService.creer_notification(
+                    TypeNotification.AUTRE,
+                    user.id,
+                    user.email,
+                    "Vos informations ont été mises à jour",
+                    f"Bonjour {user.prenom} {user.nom},\n\n"
+                    f"Vos informations de compte ont été mises à jour par {modified_by_user.prenom} {modified_by_user.nom}.\n\n"
+                    f"Changements effectués:\n{changements_text}\n\n"
+                    f"Si vous n'êtes pas à l'origine de ces modifications, veuillez contacter l'administrateur immédiatement.\n\n"
+                    f"Cordialement,\n"
+                    f"L'équipe de gestion"
+                )
+            except Exception as email_error:
+                print(f"Erreur lors de l'envoi de l'email de modification: {email_error}")
         
         return jsonify({
             'message': 'Utilisateur modifié avec succès',

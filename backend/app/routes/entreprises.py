@@ -91,6 +91,40 @@ def create_entreprise():
         db.session.add(entreprise)
         db.session.commit()
         
+        # Envoyer un email au contact RH de l'entreprise si renseigné
+        from app.services.notification_service import NotificationService
+        from app.models.notification import TypeNotification
+        from app.models.user import User
+        from flask_jwt_extended import get_jwt_identity
+        
+        try:
+            # Récupérer l'utilisateur qui a créé
+            current_user_id = get_jwt_identity()
+            created_by_user = User.query.get(current_user_id)
+            
+            # Envoyer un email au contact RH de l'entreprise
+            if entreprise.contact_rh_email:
+                NotificationService.creer_notification(
+                    TypeNotification.AUTRE,
+                    None,
+                    entreprise.contact_rh_email,
+                    f"Votre entreprise a été ajoutée au système - {entreprise.nom}",
+                    f"Bonjour {entreprise.contact_rh_nom or 'Madame, Monsieur'},\n\n"
+                    f"Votre entreprise '{entreprise.nom}' a été ajoutée au système de gestion de personnel par {created_by_user.prenom} {created_by_user.nom}.\n\n"
+                    f"Informations de votre entreprise:\n"
+                    f"- Nom: {entreprise.nom}\n"
+                    f"- SIRET: {entreprise.siret}\n"
+                    f"- Adresse: {entreprise.adresse}\n"
+                    f"- Ville: {entreprise.ville} ({entreprise.code_postal})\n"
+                    f"- Téléphone: {entreprise.telephone or 'Non renseigné'}\n"
+                    f"- Email: {entreprise.email or 'Non renseigné'}\n\n"
+                    f"Vous recevrez des notifications par email pour toutes les actions concernant votre entreprise.\n\n"
+                    f"Cordialement,\n"
+                    f"L'équipe de gestion"
+                )
+        except Exception as email_error:
+            print(f"Erreur lors de l'envoi de l'email de création d'entreprise: {email_error}")
+        
         return jsonify({
             'message': 'Entreprise créée avec succès',
             'entreprise': entreprise.to_dict()
@@ -178,9 +212,71 @@ def update_entreprise(entreprise_id):
         if 'contact_rh_telephone' in data:
             entreprise.contact_rh_telephone = data['contact_rh_telephone']
         if 'is_active' in data:
-            entreprise.is_active = data['is_active']
+            # Convertir en booléen si c'est une chaîne
+            is_active = data['is_active']
+            if isinstance(is_active, str):
+                is_active = is_active.lower() == 'true'
+            entreprise.is_active = is_active
         
         db.session.commit()
+        
+        # Envoyer un email aux RH de l'entreprise
+        from app.services.notification_service import NotificationService
+        from app.models.notification import TypeNotification
+        from app.models.user import User
+        from flask_jwt_extended import get_jwt_identity
+        
+        try:
+            # Récupérer l'utilisateur qui a modifié
+            current_user_id = get_jwt_identity()
+            modified_by_user = User.query.get(current_user_id)
+            
+            # Récupérer les RH de l'entreprise
+            rh_users = User.query.filter_by(entreprise_id=entreprise.id).all()
+            
+            # Envoyer un email à chaque RH
+            for rh_user in rh_users:
+                NotificationService.creer_notification(
+                    TypeNotification.AUTRE,
+                    rh_user.id,
+                    rh_user.email,
+                    f"Informations de votre entreprise mises à jour - {entreprise.nom}",
+                    f"Bonjour {rh_user.prenom} {rh_user.nom},\n\n"
+                    f"Les informations de votre entreprise '{entreprise.nom}' ont été mises à jour par {modified_by_user.prenom} {modified_by_user.nom}.\n\n"
+                    f"Informations actuelles:\n"
+                    f"- Nom: {entreprise.nom}\n"
+                    f"- SIRET: {entreprise.siret or 'Non renseigné'}\n"
+                    f"- Adresse: {entreprise.adresse or 'Non renseignée'}\n"
+                    f"- Ville: {entreprise.ville}\n"
+                    f"- Code postal: {entreprise.code_postal or 'Non renseigné'}\n"
+                    f"- Téléphone: {entreprise.telephone or 'Non renseigné'}\n"
+                    f"- Email: {entreprise.email or 'Non renseigné'}\n"
+                    f"- Contact RH: {entreprise.contact_rh_nom or 'Non renseigné'}\n"
+                    f"- Statut: {'Actif' if entreprise.is_active else 'Inactif'}\n\n"
+                    f"Cordialement,\n"
+                    f"L'équipe de gestion"
+                )
+            
+            # Envoyer aussi un email au contact RH de l'entreprise si renseigné
+            if entreprise.contact_rh_email:
+                NotificationService.creer_notification(
+                    TypeNotification.AUTRE,
+                    None,
+                    entreprise.contact_rh_email,
+                    f"Informations de votre entreprise mises à jour - {entreprise.nom}",
+                    f"Bonjour {entreprise.contact_rh_nom or 'Madame, Monsieur'},\n\n"
+                    f"Les informations de votre entreprise '{entreprise.nom}' ont été mises à jour.\n\n"
+                    f"Informations actuelles:\n"
+                    f"- Nom: {entreprise.nom}\n"
+                    f"- Ville: {entreprise.ville}\n"
+                    f"- Téléphone: {entreprise.telephone or 'Non renseigné'}\n"
+                    f"- Email: {entreprise.email or 'Non renseigné'}\n\n"
+                    f"Pour plus d'informations, veuillez contacter l'administrateur du système.\n\n"
+                    f"Cordialement,\n"
+                    f"L'équipe de gestion"
+                )
+        except Exception as email_error:
+            print(f"Erreur lors de l'envoi de l'email de modification d'entreprise: {email_error}")
         
         return jsonify({
             'message': 'Entreprise modifiée avec succès',
@@ -189,4 +285,7 @@ def update_entreprise(entreprise_id):
         
     except Exception as e:
         db.session.rollback()
+        print(f"Erreur lors de la modification de l'entreprise: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'message': 'Erreur lors de la modification', 'error': str(e)}), 500

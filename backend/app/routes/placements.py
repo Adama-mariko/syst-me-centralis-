@@ -3,12 +3,16 @@ from flask_jwt_extended import jwt_required
 from app.models.placement import Placement, StatutPlacement
 from app.models.entreprise import Entreprise
 from app.models.user import UserRole
+from app.models.mouvement import TypeMouvement
 from app.extensions import db
 from app.services.auth_service import AuthService
+from app.services.mouvement_service import MouvementService
+from app.services.notification_service import NotificationService
 from datetime import datetime
 import os
 from werkzeug.utils import secure_filename
 import uuid
+import json
 
 placements_bp = Blueprint('placements', __name__)
 
@@ -145,6 +149,31 @@ def create_placement():
         
         print(f"[DEBUG] Placement créé avec succès: ID={placement.id}, entreprise_id={placement.entreprise_id}")
         
+        # Enregistrer le mouvement de traçabilité
+        try:
+            MouvementService.enregistrer_mouvement(
+                type_mouvement=TypeMouvement.PLACEMENT_CREE,
+                description=f"Placement créé: {placement.poste_demande} chez {entreprise.nom}",
+                user_id=current_user.id,
+                collaborateur_id=placement.collaborateur_id,
+                entreprise_id=placement.entreprise_id,
+                placement_id=placement.id,
+                donnees_apres={
+                    'poste': placement.poste_demande,
+                    'date_debut': placement.date_debut.isoformat(),
+                    'date_fin': placement.date_fin.isoformat() if placement.date_fin else None,
+                    'salaire': float(placement.salaire_propose) if placement.salaire_propose else None
+                }
+            )
+        except Exception as e:
+            print(f"[WARNING] Erreur lors de l'enregistrement du mouvement: {e}")
+        
+        # Envoyer notification automatique aux RH de l'entreprise
+        try:
+            NotificationService.notifier_placement_cree(placement)
+        except Exception as e:
+            print(f"[WARNING] Erreur lors de l'envoi de la notification: {e}")
+        
         return jsonify({
             'message': 'Placement créé avec succès',
             'placement': placement.to_dict()
@@ -179,6 +208,15 @@ def update_placement(placement_id):
         # RH et Admin peuvent modifier tous les placements
         # Récupérer les données du formulaire (FormData)
         data = request.form.to_dict()
+        
+        # Sauvegarder l'état avant modification pour la traçabilité
+        donnees_avant = {
+            'poste': placement.poste_demande,
+            'date_debut': placement.date_debut.isoformat(),
+            'date_fin': placement.date_fin.isoformat() if placement.date_fin else None,
+            'salaire': float(placement.salaire_propose) if placement.salaire_propose else None,
+            'statut': placement.statut.value
+        }
         
         # Gérer l'upload du document
         if 'document' in request.files:
@@ -224,6 +262,29 @@ def update_placement(placement_id):
         
         db.session.commit()
         
+        # Enregistrer le mouvement de traçabilité
+        try:
+            donnees_apres = {
+                'poste': placement.poste_demande,
+                'date_debut': placement.date_debut.isoformat(),
+                'date_fin': placement.date_fin.isoformat() if placement.date_fin else None,
+                'salaire': float(placement.salaire_propose) if placement.salaire_propose else None,
+                'statut': placement.statut.value
+            }
+            
+            MouvementService.enregistrer_mouvement(
+                type_mouvement=TypeMouvement.PLACEMENT_MODIFIE,
+                description=f"Placement modifié: {placement.poste_demande}",
+                user_id=current_user.id,
+                collaborateur_id=placement.collaborateur_id,
+                entreprise_id=placement.entreprise_id,
+                placement_id=placement.id,
+                donnees_avant=donnees_avant,
+                donnees_apres=donnees_apres
+            )
+        except Exception as e:
+            print(f"[WARNING] Erreur lors de l'enregistrement du mouvement: {e}")
+        
         return jsonify({
             'message': 'Placement modifié avec succès',
             'placement': placement.to_dict()
@@ -257,6 +318,25 @@ def validate_placement(placement_id):
         
         print(f"[DEBUG] Placement {placement_id} validé avec succès")
         
+        # Enregistrer le mouvement de traçabilité
+        try:
+            MouvementService.enregistrer_mouvement(
+                type_mouvement=TypeMouvement.PLACEMENT_VALIDE,
+                description=f"Placement validé par RH: {placement.poste_demande}",
+                user_id=current_user.id,
+                collaborateur_id=placement.collaborateur_id,
+                entreprise_id=placement.entreprise_id,
+                placement_id=placement.id
+            )
+        except Exception as e:
+            print(f"[WARNING] Erreur lors de l'enregistrement du mouvement: {e}")
+        
+        # Envoyer notification de validation
+        try:
+            NotificationService.notifier_placement_valide(placement)
+        except Exception as e:
+            print(f"[WARNING] Erreur lors de l'envoi de la notification: {e}")
+        
         return jsonify({
             'message': 'Placement validé avec succès',
             'placement': placement.to_dict()
@@ -266,3 +346,43 @@ def validate_placement(placement_id):
         print(f"[ERROR] Erreur validation placement: {str(e)}")
         db.session.rollback()
         return jsonify({'message': 'Erreur lors de la validation', 'error': str(e)}), 500
+
+@placements_bp.route('/<int:placement_id>', methods=['DELETE'])
+@jwt_required()
+def delete_placement(placement_id):
+    """Suppression d'un placement"""
+    try:
+        current_user = AuthService.get_current_user()
+        placement = Placement.query.get_or_404(placement_id)
+        
+        # Sauvegarder les informations avant suppression
+        placement_info = {
+            'poste': placement.poste_demande,
+            'collaborateur_id': placement.collaborateur_id,
+            'entreprise_id': placement.entreprise_id,
+            'date_debut': placement.date_debut.isoformat(),
+            'date_fin': placement.date_fin.isoformat() if placement.date_fin else None
+        }
+        
+        # Supprimer le placement
+        db.session.delete(placement)
+        db.session.commit()
+        
+        # Enregistrer le mouvement de traçabilité
+        try:
+            MouvementService.enregistrer_mouvement(
+                type_mouvement=TypeMouvement.PLACEMENT_SUPPRIME,
+                description=f"Placement supprimé: {placement_info['poste']}",
+                user_id=current_user.id,
+                collaborateur_id=placement_info['collaborateur_id'],
+                entreprise_id=placement_info['entreprise_id'],
+                donnees_avant=placement_info
+            )
+        except Exception as e:
+            print(f"[WARNING] Erreur lors de l'enregistrement du mouvement: {e}")
+        
+        return jsonify({'message': 'Placement supprimé avec succès'}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': 'Erreur lors de la suppression', 'error': str(e)}), 500

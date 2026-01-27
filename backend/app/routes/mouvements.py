@@ -29,7 +29,7 @@ def get_mouvements():
         if type_mouvement:
             query = query.filter_by(type_mouvement=TypeMouvement(type_mouvement))
         
-        # Si RH, filtrer par entreprise
+        # Si RH, filtrer par entreprise (voir tous les mouvements de leur entreprise)
         if current_user.role.value == 'rh_entreprise':
             if not current_user.entreprise_id:
                 return jsonify({'message': 'Utilisateur non associé à une entreprise'}), 400
