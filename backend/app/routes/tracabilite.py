@@ -11,20 +11,32 @@ tracabilite_bp = Blueprint('tracabilite', __name__)
 
 @tracabilite_bp.route('/mouvements', methods=['GET'])
 @jwt_required()
-@role_required([UserRole.SUPER_ADMIN, UserRole.ADMIN])
 def get_mouvements():
-    """Récupérer tous les mouvements"""
+    """Récupérer tous les mouvements (Admin voit tout, RH voit son entreprise)"""
     try:
+        from app.services.auth_service import AuthService
+        current_user = AuthService.get_current_user()
+        
+        # Paramètres de requête
+        limit = request.args.get('limit', type=int)
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 50, type=int)
         type_mouvement = request.args.get('type_mouvement')
         user_id = request.args.get('user_id', type=int)
         collaborateur_id = request.args.get('collaborateur_id', type=int)
+        entreprise_id = request.args.get('entreprise_id', type=int)
         date_debut = request.args.get('date_debut')
         date_fin = request.args.get('date_fin')
         
         query = Mouvement.query
         
+        # Si RH, filtrer par entreprise
+        if current_user.role == UserRole.RH_ENTREPRISE:
+            if not current_user.entreprise_id:
+                return jsonify({'message': 'Utilisateur RH non associé à une entreprise'}), 400
+            query = query.filter_by(entreprise_id=current_user.entreprise_id)
+        
+        # Filtres supplémentaires
         if type_mouvement:
             query = query.filter_by(type_mouvement=type_mouvement)
         
@@ -34,6 +46,10 @@ def get_mouvements():
         if collaborateur_id:
             query = query.filter_by(collaborateur_id=collaborateur_id)
         
+        if entreprise_id and current_user.role != UserRole.RH_ENTREPRISE:
+            # Les RH ne peuvent pas filtrer par entreprise (déjà filtré)
+            query = query.filter_by(entreprise_id=entreprise_id)
+        
         if date_debut:
             date_debut_obj = datetime.strptime(date_debut, '%Y-%m-%d')
             query = query.filter(Mouvement.created_at >= date_debut_obj)
@@ -42,6 +58,15 @@ def get_mouvements():
             date_fin_obj = datetime.strptime(date_fin, '%Y-%m-%d') + timedelta(days=1)
             query = query.filter(Mouvement.created_at < date_fin_obj)
         
+        # Si limit est spécifié, ne pas utiliser la pagination
+        if limit:
+            mouvements = query.order_by(Mouvement.created_at.desc()).limit(limit).all()
+            return jsonify({
+                'mouvements': [mouvement.to_dict() for mouvement in mouvements],
+                'total': query.count()
+            })
+        
+        # Sinon, utiliser la pagination
         mouvements = query.order_by(Mouvement.created_at.desc()).paginate(
             page=page, per_page=per_page, error_out=False
         )
@@ -54,6 +79,7 @@ def get_mouvements():
         })
         
     except Exception as e:
+        print(f"Erreur get_mouvements: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @tracabilite_bp.route('/mouvements/collaborateur/<int:collaborateur_id>', methods=['GET'])

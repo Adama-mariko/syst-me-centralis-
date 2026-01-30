@@ -2,14 +2,12 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
-import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Ajouter le token d'authentification si disponible
-  const token = authService.getToken();
+  // Ajouter le token d'authentification si disponible (directement depuis localStorage)
+  const token = localStorage.getItem('access_token');
   if (token) {
     req = req.clone({
       setHeaders: {
@@ -22,7 +20,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError(error => {
       // Rediriger vers la page de connexion si non autorisé
       if (error.status === 401) {
-        authService.logout();
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         router.navigate(['/login']);
       }
       return throwError(() => error);

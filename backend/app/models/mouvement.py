@@ -41,7 +41,7 @@ class Mouvement(db.Model):
     __tablename__ = 'mouvements'
     
     id = db.Column(db.Integer, primary_key=True)
-    type_mouvement = db.Column(db.Enum(TypeMouvement), nullable=False)
+    type_mouvement = db.Column(db.String(50), nullable=False)  # Changé de Enum à String
     description = db.Column(db.Text, nullable=False)
     collaborateur_id = db.Column(db.Integer, db.ForeignKey('collaborateurs.id'))
     entreprise_id = db.Column(db.Integer, db.ForeignKey('entreprises.id'))
@@ -62,9 +62,17 @@ class Mouvement(db.Model):
     user = db.relationship('User', backref='mouvements')
     
     def to_dict(self):
+        # Gérer le cas où type_mouvement est déjà une chaîne ou un enum
+        if isinstance(self.type_mouvement, TypeMouvement):
+            type_mouvement_value = self.type_mouvement.value
+        elif isinstance(self.type_mouvement, str):
+            type_mouvement_value = self.type_mouvement
+        else:
+            type_mouvement_value = str(self.type_mouvement) if self.type_mouvement else None
+        
         return {
             'id': self.id,
-            'type_mouvement': self.type_mouvement.value,
+            'type_mouvement': type_mouvement_value,
             'description': self.description,
             'collaborateur_id': self.collaborateur_id,
             'entreprise_id': self.entreprise_id,

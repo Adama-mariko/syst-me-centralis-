@@ -76,8 +76,14 @@ export class TracabiliteComponent implements OnInit {
     { value: 'absence_refuse', label: 'Absence refusée', icon: 'close', color: '#F44336' },
     { value: 'collaborateur_cree', label: 'Collaborateur créé', icon: 'person_add', color: '#4CAF50' },
     { value: 'collaborateur_modifie', label: 'Collaborateur modifié', icon: 'person', color: '#FF9800' },
+    { value: 'collaborateur_statut_change', label: 'Statut collaborateur changé', icon: 'swap_horiz', color: '#2196F3' },
     { value: 'entreprise_cree', label: 'Entreprise créée', icon: 'business', color: '#4CAF50' },
-    { value: 'entreprise_modifie', label: 'Entreprise modifiée', icon: 'business', color: '#FF9800' }
+    { value: 'entreprise_modifie', label: 'Entreprise modifiée', icon: 'business', color: '#FF9800' },
+    { value: 'utilisateur_cree', label: 'Utilisateur créé', icon: 'person_add', color: '#4CAF50' },
+    { value: 'utilisateur_modifie', label: 'Utilisateur modifié', icon: 'person', color: '#FF9800' },
+    { value: 'utilisateur_role_change', label: 'Rôle utilisateur changé', icon: 'admin_panel_settings', color: '#2196F3' },
+    { value: 'competence_ajout', label: 'Compétence ajoutée', icon: 'add', color: '#4CAF50' },
+    { value: 'competence_modification', label: 'Compétence modifiée', icon: 'edit', color: '#FF9800' }
   ];
 
   constructor(

@@ -17,8 +17,15 @@ class MouvementService:
             print(f"🔍 MouvementService.enregistrer_mouvement - User ID: {user_id}")
             print(f"🔍 MouvementService.enregistrer_mouvement - Absence ID: {absence_id}")
             
+            # Convertir l'enum en valeur si nécessaire
+            from app.models.mouvement import TypeMouvement
+            if isinstance(type_mouvement, TypeMouvement):
+                type_mouvement_value = type_mouvement.value
+            else:
+                type_mouvement_value = type_mouvement
+            
             mouvement = Mouvement(
-                type_mouvement=type_mouvement,
+                type_mouvement=type_mouvement_value,
                 description=description,
                 collaborateur_id=collaborateur_id,
                 entreprise_id=entreprise_id,

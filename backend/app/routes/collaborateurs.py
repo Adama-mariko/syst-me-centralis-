@@ -113,6 +113,45 @@ def create_collaborateur():
         db.session.add(collaborateur)
         db.session.commit()
         
+        # Créer un mouvement de traçabilité
+        from app.services.mouvement_service import MouvementService
+        from app.models.mouvement import TypeMouvement
+        
+        try:
+            MouvementService.enregistrer_mouvement(
+                type_mouvement=TypeMouvement.COLLABORATEUR_CREE,
+                user_id=current_user.id,
+                collaborateur_id=collaborateur.id,
+                entreprise_id=collaborateur.entreprise_actuelle_id,
+                description=f"Création du collaborateur {collaborateur.prenom} {collaborateur.nom} - Poste: {collaborateur.poste}"
+            )
+        except Exception as mouvement_error:
+            print(f"Erreur lors de la création du mouvement: {mouvement_error}")
+        
+        # Envoyer un email au collaborateur
+        from app.services.notification_service import NotificationService
+        from app.models.notification import TypeNotification
+        
+        try:
+            NotificationService.creer_notification(
+                TypeNotification.AUTRE,
+                None,
+                collaborateur.email,
+                "Bienvenue dans le système de gestion de personnel",
+                f"Bonjour {collaborateur.prenom} {collaborateur.nom},\n\n"
+                f"Vous avez été ajouté au système de gestion de personnel.\n\n"
+                f"Vos informations:\n"
+                f"- Numéro d'employé: {collaborateur.numero_employe}\n"
+                f"- Poste: {collaborateur.poste}\n"
+                f"- Date d'embauche: {collaborateur.date_embauche}\n"
+                f"- Statut: {collaborateur.statut.value}\n\n"
+                f"Vous recevrez des notifications par email pour toutes les actions vous concernant.\n\n"
+                f"Cordialement,\n"
+                f"L'équipe de gestion"
+            )
+        except Exception as email_error:
+            print(f"Erreur lors de l'envoi de l'email: {email_error}")
+        
         return jsonify({
             'message': 'Collaborateur créé avec succès',
             'collaborateur': collaborateur.to_dict()
@@ -179,6 +218,22 @@ def update_collaborateur(collaborateur_id):
             collaborateur.statut = StatutCollaborateur(data['statut'])
         
         db.session.commit()
+        
+        # Créer un mouvement de traçabilité
+        from app.services.mouvement_service import MouvementService
+        from app.models.mouvement import TypeMouvement
+        
+        try:
+            MouvementService.enregistrer_mouvement(
+                type_mouvement=TypeMouvement.COLLABORATEUR_MODIFIE,
+                user_id=current_user.id,
+                collaborateur_id=collaborateur.id,
+                entreprise_id=collaborateur.entreprise_actuelle_id,
+                description=f"Modification du collaborateur {collaborateur.prenom} {collaborateur.nom}"
+            )
+        except Exception as mouvement_error:
+            print(f"Erreur lors de la création du mouvement: {mouvement_error}")
+
         
         return jsonify({
             'message': 'Collaborateur modifié avec succès',
